@@ -5,7 +5,7 @@ spring:
   datasource:
     url: ${DATABASE_URL:jdbc:mysql://localhost:3306/qa_metrics_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=America/Bogota&allowPublicKeyRetrieval=true}
     username: ${DATABASE_USER:root}
-    password: ${DATABASE_PASS:Isaac2013*}
+    password: ${DATABASE_PASS:}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
@@ -25,7 +25,7 @@ spring:
     out-of-order: true
     url: ${DATABASE_URL:jdbc:mysql://localhost:3306/qa_metrics_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=America/Bogota&allowPublicKeyRetrieval=true}
     user: ${DATABASE_USER:root}
-    password: ${DATABASE_PASS:Isaac2013*}
+    password: ${DATABASE_PASS:}
 
 server:
   port: ${PORT:8080}
