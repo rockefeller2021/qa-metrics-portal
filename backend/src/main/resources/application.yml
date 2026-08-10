@@ -21,6 +21,9 @@ spring:
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
+    url: ${DATABASE_URL:jdbc:mysql://localhost:3306/qa_metrics_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=America/Bogota&allowPublicKeyRetrieval=true}
+    user: ${DATABASE_USER:root}
+    password: ${DATABASE_PASS:Isaac2013*}
 
 server:
   port: ${PORT:8080}
