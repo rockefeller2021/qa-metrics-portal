@@ -65,7 +65,7 @@ public class UserRepositoryAdapter implements UserRepository {
                 entity.getUsername(),
                 entity.getEmail(),
                 entity.getPasswordHash(),
-                UserRole.valueOf(entity.getRole()),
+                UserRole.fromValue(entity.getRole()),
                 entity.isActive(),
                 entity.getCreatedAt()
         );
@@ -77,7 +77,8 @@ public class UserRepositoryAdapter implements UserRepository {
         entity.setUsername(user.getUsername());
         entity.setEmail(user.getEmail());
         entity.setPasswordHash(user.getPasswordHash());
-        entity.setRole(user.getRole().name());
+        String roleStr = user.getRole() != null ? user.getRole().name().replace("ROLE_", "") : "ANALYST";
+        entity.setRole(roleStr);
         entity.setActive(user.isActive());
         return entity;
     }

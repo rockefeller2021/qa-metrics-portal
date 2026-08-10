@@ -49,9 +49,9 @@ public class UserUseCaseImpl implements UserUseCase {
         User user = new User(
                 null,
                 username.trim().toLowerCase(),
-                (email != null) ? email.trim() : username.trim() + "@qametrics.com",
+                (email != null && !email.isBlank()) ? email.trim() : username.trim() + "@qametrics.com",
                 hash,
-                (role != null) ? role : UserRole.ANALYST,
+                (role != null) ? role : UserRole.ROLE_ANALYST,
                 true,
                 LocalDateTime.now()
         );
