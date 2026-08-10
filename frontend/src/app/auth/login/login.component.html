@@ -1,0 +1,123 @@
+<section class="min-h-screen flex items-center justify-center bg-[#0a0a1a] font-sans relative overflow-hidden p-4">
+
+  <!-- Fondo animado con partículas/orbes -->
+  <div class="fixed inset-0 pointer-events-none z-0">
+    <div class="absolute w-[500px] h-[500px] rounded-full bg-indigo-600/30 blur-[100px] -top-32 -left-24 animate-pulse"></div>
+    <div class="absolute w-[400px] h-[400px] rounded-full bg-purple-600/30 blur-[100px] -bottom-24 -right-20 animate-pulse delay-1000"></div>
+    <div class="absolute w-[300px] h-[300px] rounded-full bg-cyan-600/20 blur-[90px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+  </div>
+
+  <!-- Card glassmorphism -->
+  <div class="relative z-10 w-full max-w-md bg-white/[0.05] backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-2xl shadow-black/60">
+
+    <!-- Logo / Header -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center mb-4 drop-shadow-[0_0_15px_rgba(99,102,241,0.6)]">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+          <rect width="48" height="48" rx="14" fill="url(#grad1)"/>
+          <path d="M14 24l7 7 13-13" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="grad1" x1="0" y1="0" x2="48" y2="48">
+              <stop offset="0%" stop-color="#6366f1"/>
+              <stop offset="100%" stop-color="#8b5cf6"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <h1 class="text-2xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent tracking-tight">QA Metrics Portal</h1>
+      <p class="text-xs text-slate-400 mt-1">Plataforma Web de Gobierno y Calidad</p>
+    </div>
+
+    <!-- Formulario -->
+    <form (ngSubmit)="onLogin()" class="space-y-5">
+
+      <!-- Username -->
+      <div class="space-y-1.5">
+        <label for="username" class="text-xs font-semibold uppercase tracking-wider text-slate-300">Usuario</label>
+        <div class="relative flex items-center">
+          <svg class="w-4 h-4 absolute left-3.5 text-slate-400 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <input
+            id="username"
+            name="username"
+            type="text"
+            class="w-full pl-10 pr-4 py-3 bg-white/[0.07] border border-white/10 rounded-xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:bg-indigo-500/10 transition-all"
+            placeholder="Ingresa tu usuario"
+            [value]="username()"
+            (input)="username.set($any($event.target).value)"
+            autocomplete="username"
+            required
+          />
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="space-y-1.5">
+        <label for="password" class="text-xs font-semibold uppercase tracking-wider text-slate-300">Contraseña</label>
+        <div class="relative flex items-center">
+          <svg class="w-4 h-4 absolute left-3.5 text-slate-400 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <input
+            id="password"
+            name="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            class="w-full pl-10 pr-10 py-3 bg-white/[0.07] border border-white/10 rounded-xl text-white text-sm placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:bg-indigo-500/10 transition-all"
+            placeholder="Ingresa tu contraseña"
+            [value]="password()"
+            (input)="password.set($any($event.target).value)"
+            autocomplete="current-password"
+            required
+          />
+          <button type="button" class="absolute right-3 text-slate-400 hover:text-white transition-colors" (click)="togglePassword()" aria-label="Mostrar contraseña">
+            @if (showPassword()) {
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+            } @else {
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            }
+          </button>
+        </div>
+      </div>
+
+      <!-- Error Alert -->
+      @if (errorMessage()) {
+        <div class="flex items-center gap-2 p-3 bg-rose-500/15 border border-rose-500/30 rounded-xl text-rose-300 text-xs">
+          <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <!-- Submit Button -->
+      <button
+        id="btn-login"
+        type="submit"
+        class="w-full py-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold rounded-xl text-sm shadow-lg shadow-indigo-500/30 transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+        [disabled]="!isFormValid() || isLoading()">
+        @if (isLoading()) {
+          <span class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+          Autenticando...
+        } @else {
+          Iniciar Sesión
+        }
+      </button>
+
+    </form>
+
+    <p class="text-center text-[11px] text-slate-500 mt-6">
+      QA Metrics Portal v2.0 &nbsp;·&nbsp; Acceso Autorizado
+    </p>
+
+  </div>
+</section>

@@ -1,0 +1,149 @@
+<div class="min-h-screen bg-[#0a0a1a] text-slate-100 font-sans pb-12">
+  <app-navbar></app-navbar>
+
+  <!-- ── Main Content ── -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
+
+    <!-- Header -->
+    <div class="flex items-start justify-between mb-6 gap-4">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-white">Dashboard de Calidad</h1>
+        <p class="text-sm text-slate-400 mt-1">Indicadores consolidados — Target: 95%</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <app-period-filter (periodChange)="onPeriodChange($event)"></app-period-filter>
+        <button (click)="loadDashboard()" class="inline-flex items-center gap-2 px-3.5 py-2 bg-white/5 border border-white/10 rounded-xl text-slate-300 text-xs font-medium hover:bg-indigo-500/10 hover:text-indigo-400 hover:border-indigo-500/30 transition-all">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+          </svg>
+          Actualizar
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-1 bg-white/[0.03] border border-white/10 p-1 rounded-xl w-fit mb-6">
+      <button class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all" [class.bg-indigo-500\/20]="activeTab() === 'consolidated'" [class.text-indigo-400]="activeTab() === 'consolidated'" [class.text-slate-400]="activeTab() !== 'consolidated'" (click)="setTab('consolidated')">Consolidado</button>
+      <button class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all" [class.bg-indigo-500\/20]="activeTab() === 'fabrica'" [class.text-indigo-400]="activeTab() === 'fabrica'" [class.text-slate-400]="activeTab() !== 'fabrica'" (click)="setTab('fabrica')">FÁBRICA</button>
+      <button class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all" [class.bg-indigo-500\/20]="activeTab() === 'minorDemand'" [class.text-indigo-400]="activeTab() === 'minorDemand'" [class.text-slate-400]="activeTab() !== 'minorDemand'" (click)="setTab('minorDemand')">MINOR DEMAND</button>
+    </div>
+
+    @if (isLoading()) {
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 animate-pulse">
+        <div class="h-36 bg-white/5 rounded-2xl"></div>
+        <div class="h-36 bg-white/5 rounded-2xl"></div>
+        <div class="h-36 bg-white/5 rounded-2xl"></div>
+        <div class="h-36 bg-white/5 rounded-2xl"></div>
+      </div>
+    } @else if (currentMetrics(); as m) {
+
+      <!-- Metrics Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+
+        <!-- Gauge Card -->
+        <div class="bg-white/[0.04] border rounded-2xl p-6 backdrop-blur-md flex flex-col items-center justify-center text-center shadow-xl"
+          [class.border-emerald-500\/30]="m.targetAchieved" [class.border-rose-500\/30]="!m.targetAchieved">
+          <h2 class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">% de Calidad</h2>
+          
+          <div class="relative mb-4">
+            <svg width="140" height="140" viewBox="0 0 140 140">
+              <circle cx="70" cy="70" r="54" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="12"/>
+              <circle cx="70" cy="70" r="54" fill="none"
+                [attr.stroke]="gaugeColor()"
+                stroke-width="12"
+                stroke-linecap="round"
+                [attr.stroke-dasharray]="2 * 3.14159 * 54"
+                [attr.stroke-dashoffset]="gaugeDashOffset()"
+                transform="rotate(-90 70 70)"
+                class="transition-all duration-700 ease-out"/>
+              <text x="70" y="65" text-anchor="middle" class="text-2xl font-extrabold" [attr.fill]="gaugeColor()">
+                {{ formatPercent(m.qualityPercentage) }}
+              </text>
+              <text x="70" y="82" text-anchor="middle" class="text-[11px] fill-slate-400">Calidad</text>
+            </svg>
+          </div>
+
+          <div class="text-xs font-semibold px-3 py-1 rounded-full border"
+            [class.bg-emerald-500\/15]="m.targetAchieved" [class.text-emerald-400]="m.targetAchieved" [class.border-emerald-500\/30]="m.targetAchieved"
+            [class.bg-rose-500\/15]="!m.targetAchieved" [class.text-rose-400]="!m.targetAchieved" [class.border-rose-500\/30]="!m.targetAchieved">
+            {{ m.targetAchieved ? '✓ Target Alcanzado (≥95%)' : '✗ Bajo el Target (95%)' }}
+          </div>
+        </div>
+
+        <!-- KPI Grid -->
+        <div class="lg:col-span-2 grid grid-cols-2 gap-4">
+          <div class="bg-white/[0.04] border border-white/10 rounded-2xl p-5 backdrop-blur-md flex flex-col justify-between">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center mb-3">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
+            <div class="text-3xl font-extrabold text-white tracking-tight">{{ m.successfulCases }}<span class="text-sm font-normal text-slate-400">/{{ m.totalCases }}</span></div>
+            <div class="text-xs text-slate-400 font-medium mt-1">Casos Exitosos</div>
+          </div>
+
+          <div class="bg-white/[0.04] border border-white/10 rounded-2xl p-5 backdrop-blur-md flex flex-col justify-between">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/15 text-purple-400 flex items-center justify-center mb-3">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div class="text-3xl font-extrabold text-white tracking-tight">{{ m.bugsFound }}</div>
+            <div class="text-xs text-slate-400 font-medium mt-1">Bugs Encontrados</div>
+          </div>
+
+          <div class="bg-white/[0.04] border border-white/10 rounded-2xl p-5 backdrop-blur-md flex flex-col justify-between">
+            <div class="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center mb-3">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div class="text-3xl font-extrabold text-white tracking-tight">{{ m.reinjections }}</div>
+            <div class="text-xs text-slate-400 font-medium mt-1">Reinyecciones Detectadas</div>
+          </div>
+
+          <div class="bg-white/[0.04] border border-white/10 rounded-2xl p-5 backdrop-blur-md flex flex-col justify-between">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center mb-3">
+              <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            </div>
+            <div class="text-3xl font-extrabold text-white tracking-tight">
+              {{ m.executionsPerSuccess ? (m.executionsPerSuccess | number:'1.1-2') + ' exec/OK' : ((m.executionRatio || 0) * 100 | number:'1.0-1') + '%' }}
+            </div>
+            <div class="flex items-center justify-between text-xs mt-1">
+              <span class="text-slate-400 font-semibold">Esfuerzo de Ejecución</span>
+              <span class="text-indigo-400 font-medium">{{ ((m.executionRatio || 0) * 100 | number:'1.0-1') }}% Ratio</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── ECharts Bar Chart Month-to-Month ─────────────────────── -->
+      <div class="bg-white/[0.04] border border-white/10 rounded-3xl p-6 backdrop-blur-md space-y-4 shadow-xl mt-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+              <span>📈 Histórico & Tendencia Mensual de Calidad (ECharts)</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">Comparativa de % de calidad por mes (Fábrica, Minor Demand y Consolidado vs Target 95%)</p>
+          </div>
+        </div>
+
+        <div #chartTrendContainer class="w-full h-80"></div>
+      </div>
+
+      <!-- Alert Banner -->
+      @if (!m.targetAchieved) {
+        <div class="flex items-center gap-3 p-4 rounded-xl text-sm font-medium border mt-4"
+          [class.bg-amber-500\/10]="m.alertLevel === 'YELLOW'" [class.border-amber-500\/30]="m.alertLevel === 'YELLOW'" [class.text-amber-200]="m.alertLevel === 'YELLOW'"
+          [class.bg-rose-500\/10]="m.alertLevel === 'RED'" [class.border-rose-500\/30]="m.alertLevel === 'RED'" [class.text-rose-200]="m.alertLevel === 'RED'">
+          <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <div>
+            <strong>Alerta de Calidad:</strong> El % de calidad actual ({{ formatPercent(m.qualityPercentage) }}) está
+            {{ m.alertLevel === 'YELLOW' ? 'próximo a caer' : 'por debajo' }} del target del 95%.
+            Se requiere acción operativa inmediata.
+          </div>
+        </div>
+      }
+
+    }
+  </main>
+</div>

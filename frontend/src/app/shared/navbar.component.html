@@ -1,0 +1,179 @@
+<header class="sticky top-0 z-40 glass-navbar px-4 sm:px-6 py-3 shadow-2xl">
+  <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+
+    <!-- ── Brand Logo & Title ────────────────────────────────────── -->
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-emerald-500 flex items-center justify-center font-black text-white text-base shadow-lg shadow-indigo-500/25">
+        QA
+      </div>
+      <div>
+        <h1 class="text-base font-extrabold brand-title">
+          QA Metrics Portal
+        </h1>
+        <p class="text-[10px] text-slate-400 font-medium">Plataforma de Calidad & Target 95%</p>
+      </div>
+    </div>
+
+    <!-- ── Desktop Navigation Links & Dropdowns ──────────────────── -->
+    <nav class="hidden md:flex items-center gap-1.5 bg-slate-900/90 p-1.5 rounded-2xl border border-white/10 text-xs font-semibold">
+
+      <!-- 1. Dashboard (Direct Link) -->
+      <a routerLink="/dashboard"
+         routerLinkActive="bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30"
+         [routerLinkActiveOptions]="{exact: true}"
+         (click)="closeMenus()"
+         class="px-3.5 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        <span>Dashboard</span>
+      </a>
+
+      <!-- 2. Gestión QA (Dropdown Menu) -->
+      <div class="relative">
+        <button (click)="toggleQaMenu()"
+                class="px-3.5 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2 cursor-pointer font-semibold"
+                [class.bg-white\/10]="showQaMenu()">
+          <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+          </svg>
+          <span>Gestión QA</span>
+          <svg class="w-3.5 h-3.5 transition-transform text-slate-400" [class.rotate-180]="showQaMenu()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+
+        @if (showQaMenu()) {
+          <div class="absolute left-0 mt-2 w-64 glass-dropdown rounded-2xl p-2 shadow-2xl space-y-1 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div class="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/5 mb-1">
+              Operaciones de Calidad
+            </div>
+            <a routerLink="/executions" (click)="closeMenus()"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-200 hover:bg-indigo-500/15 hover:text-indigo-300 transition-all">
+              <svg class="w-4 h-4 text-indigo-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+              <div>
+                <div class="font-bold text-xs">Ejecuciones de Prueba</div>
+                <div class="text-[10px] text-slate-400">Casos OK, Fallidos y Retests</div>
+              </div>
+            </a>
+
+            <a routerLink="/bugs" (click)="closeMenus()"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-200 hover:bg-rose-500/15 hover:text-rose-300 transition-all">
+              <svg class="w-4 h-4 text-rose-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              <div>
+                <div class="font-bold text-xs">BugTracker</div>
+                <div class="text-[10px] text-slate-400">Incidencias & Reinyecciones</div>
+              </div>
+            </a>
+
+            <a routerLink="/deliveries" (click)="closeMenus()"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-200 hover:bg-purple-500/15 hover:text-purple-300 transition-all">
+              <svg class="w-4 h-4 text-purple-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              <div>
+                <div class="font-bold text-xs">Seguimiento Entregas SLA</div>
+                <div class="text-[10px] text-slate-400">Cumplimiento fechas QA vs Cliente</div>
+              </div>
+            </a>
+          </div>
+        }
+      </div>
+
+      <!-- 3. Gestión Métricas (Dropdown Menu) -->
+      <div class="relative">
+        <button (click)="toggleMetricsMenu()"
+                class="px-3.5 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2 cursor-pointer font-semibold"
+                [class.bg-white\/10]="showMetricsMenu()">
+          <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+          <span>Gestión Métricas</span>
+          <svg class="w-3.5 h-3.5 transition-transform text-slate-400" [class.rotate-180]="showMetricsMenu()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
+        </button>
+
+        @if (showMetricsMenu()) {
+          <div class="absolute left-0 mt-2 w-64 glass-dropdown rounded-2xl p-2 shadow-2xl space-y-1 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+            <div class="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/5 mb-1">
+              Indicadores & Analítica
+            </div>
+            <a routerLink="/executive-quality" (click)="closeMenus()"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-200 hover:bg-emerald-500/15 hover:text-emerald-300 transition-all">
+              <svg class="w-4 h-4 text-emerald-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+              </svg>
+              <div>
+                <div class="font-bold text-xs">Calidad Consolidada 95%</div>
+                <div class="text-[10px] text-slate-400">Target global e indicadores</div>
+              </div>
+            </a>
+
+            <a routerLink="/client-tracking" (click)="closeMenus()"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-200 hover:bg-teal-500/15 hover:text-teal-300 transition-all">
+              <svg class="w-4 h-4 text-teal-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+              </svg>
+              <div>
+                <div class="font-bold text-xs">Seguimiento de Cliente</div>
+                <div class="text-[10px] text-slate-400">Evolutivos, Soportes e IBL</div>
+              </div>
+            </a>
+
+            <a routerLink="/reports" (click)="closeMenus()"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-200 hover:bg-sky-500/15 hover:text-sky-300 transition-all">
+              <svg class="w-4 h-4 text-sky-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+              </svg>
+              <div>
+                <div class="font-bold text-xs">Reportes Ejecutivos</div>
+                <div class="text-[10px] text-slate-400">Exportación a Excel / CSV</div>
+              </div>
+            </a>
+          </div>
+        }
+      </div>
+
+      <!-- 4. Usuarios & Roles (Solo Admin) -->
+      @if (authService.isAdmin()) {
+        <a routerLink="/users"
+           routerLinkActive="bg-indigo-600 text-white font-bold shadow-md shadow-indigo-600/30"
+           (click)="closeMenus()"
+           class="px-3.5 py-2 rounded-xl text-amber-300 hover:text-amber-200 hover:bg-amber-500/10 transition-all flex items-center gap-2">
+          <svg class="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          <span>Usuarios & Roles</span>
+        </a>
+      }
+
+    </nav>
+
+    <!-- ── Right Actions: Theme Toggle & User Info ──────────────── -->
+    <div class="flex items-center gap-3">
+      <app-theme-toggle></app-theme-toggle>
+
+      <div class="hidden sm:flex items-center gap-2.5 pl-3 border-l border-white/10">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center font-bold text-white text-xs shadow-md">
+          {{ authService.currentUser()?.username?.charAt(0)?.toUpperCase() }}
+        </div>
+        <div class="text-left">
+          <div class="text-xs font-bold text-slate-200 leading-tight">{{ authService.currentUser()?.username }}</div>
+          <div class="text-[10px] font-mono text-emerald-400 font-semibold uppercase tracking-wider">{{ authService.currentUser()?.role === 'ROLE_ADMIN' ? 'Administrador' : 'Analista' }}</div>
+        </div>
+      </div>
+
+      <button (click)="authService.logout()" title="Cerrar sesión" class="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-all cursor-pointer">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button>
+    </div>
+
+  </div>
+</header>

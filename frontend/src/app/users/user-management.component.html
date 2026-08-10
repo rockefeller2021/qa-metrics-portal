@@ -1,0 +1,208 @@
+<div class="min-h-screen bg-[#0a0a1a] text-slate-100 font-sans pb-12">
+  <app-navbar></app-navbar>
+
+  <!-- ── Main Content ── -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
+
+    <!-- Header -->
+    <div class="flex items-start justify-between mb-6 gap-4">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-white">Gestión de Usuarios y Roles (RBAC)</h1>
+        <p class="text-sm text-slate-400 mt-1">Administración de Accesos, Perfiles de Analistas QA y Seguridad BCrypt</p>
+      </div>
+      <button (click)="openCreateModal()" id="btn-new-user" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold text-sm rounded-xl shadow-lg shadow-indigo-500/25 transition-all transform hover:-translate-y-0.5">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nuevo Usuario
+      </button>
+    </div>
+
+    <!-- KPI Summary Bar -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-white/[0.04] border border-white/10 rounded-2xl p-4 backdrop-blur-md">
+        <span class="text-xs text-slate-400 font-medium">Total Usuarios</span>
+        <div class="text-2xl font-extrabold text-white mt-1">{{ totalUsers() }}</div>
+      </div>
+      <div class="bg-white/[0.04] border border-white/10 rounded-2xl p-4 backdrop-blur-md">
+        <span class="text-xs text-slate-400 font-medium">Administradores (ADMIN)</span>
+        <div class="text-2xl font-extrabold text-purple-400 mt-1">{{ adminUsers() }}</div>
+      </div>
+      <div class="bg-white/[0.04] border border-white/10 rounded-2xl p-4 backdrop-blur-md">
+        <span class="text-xs text-slate-400 font-medium">Analistas QA (ANALYST)</span>
+        <div class="text-2xl font-extrabold text-cyan-400 mt-1">{{ analystUsers() }}</div>
+      </div>
+      <div class="bg-white/[0.04] border border-white/10 rounded-2xl p-4 backdrop-blur-md">
+        <span class="text-xs text-slate-400 font-medium">Cuentas Activas</span>
+        <div class="text-2xl font-extrabold text-emerald-400 mt-1">{{ activeUsers() }} / {{ totalUsers() }}</div>
+      </div>
+    </div>
+
+    <!-- Controls: Role Filter + Search -->
+    <div class="flex items-center justify-between gap-4 mb-6 flex-wrap">
+      <div class="flex items-center gap-3 flex-wrap">
+        <!-- Role Filter Tabs -->
+        <div class="flex gap-1 bg-white/[0.03] border border-white/10 p-1 rounded-xl">
+          <button class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all" [class.bg-indigo-500\/20]="selectedRole() === ''" [class.text-indigo-400]="selectedRole() === ''" [class.text-slate-400]="selectedRole() !== ''" (click)="selectedRole.set('')">Todos</button>
+          <button class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all" [class.bg-indigo-500\/20]="selectedRole() === 'ROLE_ADMIN'" [class.text-indigo-400]="selectedRole() === 'ROLE_ADMIN'" [class.text-slate-400]="selectedRole() !== 'ROLE_ADMIN'" (click)="selectedRole.set('ROLE_ADMIN')">ADMIN</button>
+          <button class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all" [class.bg-indigo-500\/20]="selectedRole() === 'ROLE_ANALYST'" [class.text-indigo-400]="selectedRole() === 'ROLE_ANALYST'" [class.text-slate-400]="selectedRole() !== 'ROLE_ANALYST'" (click)="selectedRole.set('ROLE_ANALYST')">ANALYST</button>
+        </div>
+      </div>
+
+      <!-- Search Input -->
+      <div class="relative flex items-center min-w-[280px]">
+        <svg class="w-4 h-4 absolute left-3 text-slate-400 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input
+          type="text"
+          placeholder="Buscar por usuario o correo..."
+          class="w-full pl-9 pr-4 py-2 bg-white/[0.05] border border-white/10 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:bg-indigo-500/10 transition-all"
+          [value]="searchQuery()"
+          (input)="searchQuery.set($any($event.target).value)"
+        />
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-white/[0.04] border border-white/10 rounded-2xl overflow-hidden backdrop-blur-md shadow-2xl">
+      @if (userService.isLoading()) {
+        <div class="p-8 text-center text-slate-400">Cargando usuarios registrados...</div>
+      } @else if (filteredUsers().length === 0) {
+        <div class="p-8 text-center text-slate-400">No se encontraron usuarios registradas.</div>
+      } @else {
+        <table class="w-full text-left text-sm border-collapse">
+          <thead>
+            <tr class="bg-white/[0.02] border-b border-white/10 text-slate-400 text-xs font-semibold uppercase tracking-wider">
+              <th class="py-3.5 px-5">Usuario</th>
+              <th class="py-3.5 px-5">Correo Electrónico</th>
+              <th class="py-3.5 px-5">Rol Asignado</th>
+              <th class="py-3.5 px-5">Estado</th>
+              <th class="py-3.5 px-5">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/10">
+            @for (user of filteredUsers(); track user.id) {
+              <tr class="hover:bg-indigo-500/10 transition-colors">
+                <td class="py-4 px-5">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center font-bold text-white text-sm shrink-0">
+                      {{ user.username.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="font-semibold text-white text-sm">{{ user.username }}</div>
+                  </div>
+                </td>
+
+                <td class="py-4 px-5 text-slate-300 text-xs">{{ user.email || 'N/A' }}</td>
+
+                <td class="py-4 px-5">
+                  <span class="text-xs font-bold px-3 py-1 rounded-full uppercase"
+                    [class.bg-purple-500\/20]="user.role === 'ROLE_ADMIN' || user.role === 'ADMIN'" [class.text-purple-300]="user.role === 'ROLE_ADMIN' || user.role === 'ADMIN'" [class.border-purple-500\/30]="user.role === 'ROLE_ADMIN' || user.role === 'ADMIN'"
+                    [class.bg-cyan-500\/20]="user.role === 'ROLE_ANALYST' || user.role === 'ANALYST'" [class.text-cyan-300]="user.role === 'ROLE_ANALYST' || user.role === 'ANALYST'" [class.border-cyan-500\/30]="user.role === 'ROLE_ANALYST' || user.role === 'ANALYST'">
+                    {{ (user.role === 'ROLE_ADMIN' || user.role === 'ADMIN') ? 'Administrador' : 'Analista QA' }}
+                  </span>
+                </td>
+
+                <!-- Toggle Active Status -->
+                <td class="py-4 px-5">
+                  <button (click)="toggleStatus(user)" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold transition-all border"
+                    [class.bg-emerald-500\/15]="user.active" [class.text-emerald-400]="user.active" [class.border-emerald-500\/30]="user.active"
+                    [class.bg-rose-500\/15]="!user.active" [class.text-rose-400]="!user.active" [class.border-rose-500\/30]="!user.active">
+                    <span class="w-2 h-2 rounded-full" [class.bg-emerald-400]="user.active" [class.bg-rose-400]="!user.active"></span>
+                    {{ user.active ? 'ACTIVO' : 'INACTIVO' }}
+                  </button>
+                </td>
+
+                <td class="py-4 px-5">
+                  <div class="flex items-center gap-2">
+                    <button class="p-1.5 rounded-lg border border-white/10 text-slate-300 hover:bg-indigo-500/20 hover:text-indigo-400 transition-all" (click)="openPasswordModal(user)" title="Cambiar Contraseña">
+                      🔑
+                    </button>
+                    <button class="p-1.5 rounded-lg border border-white/10 text-slate-300 hover:bg-rose-500/20 hover:text-rose-400 transition-all" (click)="deleteUser(user.id!, user.username)" title="Eliminar Usuario">
+                      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+
+  </main>
+</div>
+
+<!-- ── MODAL: Crear Usuario ── -->
+@if (showCreateModal()) {
+  <div class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4" (click)="closeCreateModal()">
+    <div class="bg-[#0f0f23] border border-white/15 rounded-3xl p-6 w-full max-w-md shadow-2xl" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
+        <h2 class="text-xl font-bold text-white">Nuevo Usuario</h2>
+        <button type="button" (click)="closeCreateModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 flex items-center justify-center transition-all cursor-pointer" title="Cerrar ventana">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <form (ngSubmit)="createUser()" class="space-y-4">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-semibold text-slate-300">Nombre de Usuario *</label>
+          <input type="text" placeholder="Ej: analista_maria" class="w-full px-3.5 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500" [value]="newUsername()" (input)="newUsername.set($any($event.target).value)" required />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-semibold text-slate-300">Correo Electrónico</label>
+          <input type="email" placeholder="maria@empresa.com" class="w-full px-3.5 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500" [value]="newEmail()" (input)="newEmail.set($any($event.target).value)" />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-semibold text-slate-300">Contraseña *</label>
+          <input type="password" placeholder="Contraseña segura" class="w-full px-3.5 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500" [value]="newPassword()" (input)="newPassword.set($any($event.target).value)" required />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-semibold text-slate-300">Rol de Acceso *</label>
+          <select class="w-full px-3.5 py-2 bg-[#181838] border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500" [value]="newRole()" (change)="newRole.set($any($event.target).value)">
+            <option value="ROLE_ANALYST">Analista QA (ROLE_ANALYST)</option>
+            <option value="ROLE_ADMIN">Administrador (ROLE_ADMIN)</option>
+          </select>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-white/10">
+          <button type="button" (click)="closeCreateModal()" class="px-4 py-2 bg-white/5 border border-white/10 text-slate-300 rounded-xl text-sm font-medium hover:bg-white/10 transition-all">Cancelar</button>
+          <button type="submit" [disabled]="!newUsername() || !newPassword()" class="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-500/25 disabled:opacity-50 transition-all">Guardar Usuario</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ── MODAL: Reset Password ── -->
+@if (showPasswordModal()) {
+  <div class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4" (click)="closePasswordModal()">
+    <div class="bg-[#0f0f23] border border-white/15 rounded-3xl p-6 w-full max-w-md shadow-2xl" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-4">
+        <h2 class="text-lg font-bold text-white">Cambiar Contraseña</h2>
+        <button type="button" (click)="closePasswordModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 flex items-center justify-center transition-all cursor-pointer" title="Cerrar ventana">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-400 mb-4">Actualizando contraseña para el usuario: <strong class="text-indigo-400">{{ selectedUserForPassword()?.username }}</strong></p>
+
+      <form (ngSubmit)="updatePassword()" class="space-y-4">
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs font-semibold text-slate-300">Nueva Contraseña *</label>
+          <input type="password" placeholder="Nueva contraseña segura" class="w-full px-3.5 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500" [value]="resetPasswordValue()" (input)="resetPasswordValue.set($any($event.target).value)" required />
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-white/10">
+          <button type="button" (click)="closePasswordModal()" class="px-4 py-2 bg-white/5 border border-white/10 text-slate-300 rounded-xl text-sm font-medium hover:bg-white/10 transition-all">Cancelar</button>
+          <button type="submit" [disabled]="!resetPasswordValue()" class="px-5 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-500/25 disabled:opacity-50 transition-all">Actualizar Clave</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

@@ -1,0 +1,598 @@
+<div class="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500 selection:text-white pb-12">
+  <app-navbar></app-navbar>
+
+  <!-- ── Main Content Container ────────────────────────────────── -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+
+    <!-- Header Title & Action Buttons -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-2">
+          <span>🎯 Target de Calidad = 95%</span>
+        </div>
+        <h2 class="text-3xl font-extrabold tracking-tight text-white">Módulo de Seguimiento de Cliente</h2>
+        <p class="text-slate-400 text-sm mt-1">Control mensual de entregas (Evolutivos, Soportes, Standard Change) y devoluciones IBL con regla de reincidencia.</p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <button (click)="openReturnModal()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold text-xs shadow-lg shadow-rose-600/30 flex items-center gap-2 transition-all cursor-pointer">
+          <span>⚠️</span>
+          <span class="text-white">Registrar Devolución IBL</span>
+        </button>
+
+        <button (click)="openMetricModal()" class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-teal-600 hover:from-indigo-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition-all cursor-pointer">
+          <span>📦</span>
+          <span class="text-white">Registrar Entregas</span>
+        </button>
+
+        <button (click)="showReturnsListModal.set(true)" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-white/20 text-xs font-bold flex items-center gap-2 transition-all cursor-pointer">
+          <span>📋</span>
+          <span>Historial Devoluciones</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Filters Section (ProjectType Pills & Period Selection) -->
+    <div class="glass-panel p-5 rounded-3xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+      <div class="flex items-center gap-2 bg-slate-900/90 p-1.5 rounded-2xl border border-white/10 self-start md:self-auto">
+        <button (click)="filterByType('')"
+                [class.bg-indigo-600]="selectedProjectType() === ''"
+                [class.text-white]="selectedProjectType() === ''"
+                [class.text-slate-300]="selectedProjectType() !== ''"
+                [class.hover:text-white]="selectedProjectType() !== ''"
+                class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer">
+          🌐 Consolidado Global
+        </button>
+        <button (click)="filterByType('FABRICA')"
+                [class.bg-indigo-600]="selectedProjectType() === 'FABRICA'"
+                [class.text-white]="selectedProjectType() === 'FABRICA'"
+                [class.text-slate-300]="selectedProjectType() !== 'FABRICA'"
+                [class.hover:text-white]="selectedProjectType() !== 'FABRICA'"
+                class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer">
+          🏭 Fábrica
+        </button>
+        <button (click)="filterByType('MINOR_DEMAND')"
+                [class.bg-indigo-600]="selectedProjectType() === 'MINOR_DEMAND'"
+                [class.text-white]="selectedProjectType() === 'MINOR_DEMAND'"
+                [class.text-slate-300]="selectedProjectType() !== 'MINOR_DEMAND'"
+                [class.hover:text-white]="selectedProjectType() !== 'MINOR_DEMAND'"
+                class="px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer">
+          🔧 Minor Demand
+        </button>
+      </div>
+
+      <app-period-filter (periodChange)="onPeriodChange($event)"></app-period-filter>
+    </div>
+
+    <!-- ── KPI Cards Grid ──────────────────────────────────────── -->
+    @if (summary(); as sum) {
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+
+        <!-- Card Evolutivos -->
+        <div class="glass-panel p-6 rounded-3xl relative overflow-hidden group hover:border-indigo-500/40 transition-all">
+          <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition-all"></div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-bold uppercase tracking-wider text-indigo-400">🚀 Evolutivos</span>
+            <span [class]="sum.totalEvolutivos === 0 ? 'bg-slate-500/10 text-slate-400 border-slate-500/30' : (sum.qualityEvolutivos! >= sum.targetQuality ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border-rose-500/30')"
+                  class="px-2.5 py-1 rounded-full text-[11px] font-bold border">
+              {{ sum.totalEvolutivos === 0 ? 'Sin Entregas' : (sum.qualityEvolutivos! >= sum.targetQuality ? '✓ Cumple' : '⚠️ Bajo Target') }}
+            </span>
+          </div>
+          <div class="text-4xl font-black text-white font-mono tracking-tight">{{ sum.totalEvolutivos > 0 ? (sum.qualityEvolutivos + '%') : 'N/A' }}</div>
+          <div class="mt-4 pt-3 border-t border-white/5 flex justify-between items-center text-xs text-slate-400">
+            <span>Entregas: <strong class="text-slate-200">{{ sum.totalEvolutivos }}</strong></span>
+            <span>Defectos: <strong class="text-rose-400 font-mono">{{ sum.defectsEvolutivos }}</strong></span>
+          </div>
+        </div>
+
+        <!-- Card Soportes -->
+        <div class="glass-panel p-6 rounded-3xl relative overflow-hidden group hover:border-sky-500/40 transition-all">
+          <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-sky-500/10 rounded-full blur-xl group-hover:bg-sky-500/20 transition-all"></div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-bold uppercase tracking-wider text-sky-400">🛠️ Soportes</span>
+            <span [class]="sum.totalSoportes === 0 ? 'bg-slate-500/10 text-slate-400 border-slate-500/30' : (sum.qualitySoportes! >= sum.targetQuality ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border-rose-500/30')"
+                  class="px-2.5 py-1 rounded-full text-[11px] font-bold border">
+              {{ sum.totalSoportes === 0 ? 'Sin Entregas' : (sum.qualitySoportes! >= sum.targetQuality ? '✓ Cumple' : '⚠️ Bajo Target') }}
+            </span>
+          </div>
+          <div class="text-4xl font-black text-white font-mono tracking-tight">{{ sum.totalSoportes > 0 ? (sum.qualitySoportes + '%') : 'N/A' }}</div>
+          <div class="mt-4 pt-3 border-t border-white/5 flex justify-between items-center text-xs text-slate-400">
+            <span>Entregas: <strong class="text-slate-200">{{ sum.totalSoportes }}</strong></span>
+            <span>Defectos: <strong class="text-rose-400 font-mono">{{ sum.defectsSoportes }}</strong></span>
+          </div>
+        </div>
+
+        <!-- Card Standard Change -->
+        <div class="glass-panel p-6 rounded-3xl relative overflow-hidden group hover:border-purple-500/40 transition-all">
+          <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-purple-500/10 rounded-full blur-xl group-hover:bg-purple-500/20 transition-all"></div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-400">🔄 Standard Change</span>
+            <span [class]="sum.totalStandardChange === 0 ? 'bg-slate-500/10 text-slate-400 border-slate-500/30' : (sum.qualityStandardChange! >= sum.targetQuality ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border-rose-500/30')"
+                  class="px-2.5 py-1 rounded-full text-[11px] font-bold border">
+              {{ sum.totalStandardChange === 0 ? 'Sin Entregas' : (sum.qualityStandardChange! >= sum.targetQuality ? '✓ Cumple' : '⚠️ Bajo Target') }}
+            </span>
+          </div>
+          <div class="text-4xl font-black text-white font-mono tracking-tight">{{ sum.totalStandardChange > 0 ? (sum.qualityStandardChange + '%') : 'N/A' }}</div>
+          <div class="mt-4 pt-3 border-t border-white/5 flex justify-between items-center text-xs text-slate-400">
+            <span>Entregas: <strong class="text-slate-200">{{ sum.totalStandardChange }}</strong></span>
+            <span>Defectos: <strong class="text-rose-400 font-mono">{{ sum.defectsStandardChange }}</strong></span>
+          </div>
+        </div>
+
+        <!-- Card Consolidado Global -->
+        <div class="glass-panel p-6 rounded-3xl relative overflow-hidden group hover:border-emerald-500/40 transition-all bg-gradient-to-br from-slate-900/90 via-slate-900/50 to-emerald-950/30 border-emerald-500/30">
+          <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-500/20 rounded-full blur-xl group-hover:bg-emerald-500/30 transition-all"></div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">🌐 Consolidado Calidad</span>
+            <span [class]="sum.totalDeliveries === 0 ? 'bg-slate-500/10 text-slate-400 border-slate-500/30' : (sum.consolidatedQuality! >= sum.targetQuality ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border-rose-500/30')"
+                  class="px-2.5 py-1 rounded-full text-[11px] font-extrabold border">
+              {{ sum.totalDeliveries === 0 ? 'Sin Entregas' : (sum.consolidatedQuality! >= sum.targetQuality ? '✓ Cumple' : '⚠️ Bajo Target') }}
+            </span>
+          </div>
+          <div class="text-4xl font-black text-emerald-400 font-mono tracking-tight">{{ sum.totalDeliveries > 0 ? (sum.consolidatedQuality + '%') : 'N/A' }}</div>
+          <div class="mt-4 pt-3 border-t border-white/10 flex justify-between items-center text-xs text-slate-300">
+            <span>Total Entregas: <strong class="text-white">{{ sum.totalDeliveries }}</strong></span>
+            <span>Total Defectos: <strong class="text-rose-400 font-mono">{{ sum.totalDefects }}</strong></span>
+          </div>
+        </div>
+
+      </div>
+    }
+
+    <!-- ── ECharts Bar Chart Month-to-Month by Categories ─────────────────────── -->
+    <div class="glass-panel p-6 rounded-3xl space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>📈 Seguimiento Mes a Mes por Categorías</span>
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5">Comparativa mensual de Evolutivos, Soportes, Standard Change y Consolidado vs la línea de Target del 95%</p>
+        </div>
+      </div>
+
+      <div #chartContainer class="w-full h-80"></div>
+    </div>
+
+    <!-- ── ECharts Bar Chart Consolidated Volume & Quality ────────────────── -->
+    <div class="glass-panel p-6 rounded-3xl space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>📊 Gráfica de Barras Consolidada Mes a Mes (Target 95%)</span>
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5">Porcentaje de Calidad Consolidado mensual acumulado teniendo en cuenta todas las entregas y devoluciones reincidentes</p>
+        </div>
+      </div>
+
+      <div #chartConsolidatedContainer class="w-full h-80"></div>
+    </div>
+
+    <!-- ── Tabla de Registro de Entregas ───────────────────────── -->
+    <div class="glass-panel rounded-3xl overflow-hidden shadow-2xl border border-white/10">
+      <div class="px-6 py-4 border-b border-white/10 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h3 class="text-base font-bold text-white flex items-center gap-2">
+            <span>📦 Registro de Entregas Realizadas</span>
+          </h3>
+          <p class="text-xs text-slate-400">Ingresos semanales/mensuales de Evolutivos, Soportes y Standard Change</p>
+        </div>
+        
+        <!-- Filtros de Tabla de Entregas por Año y Mes -->
+        <div class="flex items-center gap-2 text-xs">
+          <input type="number" placeholder="Año (ej. 2026)" [ngModel]="deliveryFilterYear()" (ngModelChange)="deliveryFilterYear.set($event ? +$event : null)"
+                 class="w-32 bg-slate-900 border border-white/10 rounded-xl px-3 py-1.5 text-white font-mono font-bold focus:outline-none focus:border-indigo-500" />
+          
+          <select [ngModel]="deliveryFilterMonth()" (ngModelChange)="deliveryFilterMonth.set($event ? +$event : null)"
+                  class="bg-slate-900 border border-white/10 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-indigo-500">
+            <option [ngValue]="null">📅 Todos los Meses</option>
+            <option [ngValue]="1">Mes 1 - Enero</option>
+            <option [ngValue]="2">Mes 2 - Febrero</option>
+            <option [ngValue]="3">Mes 3 - Marzo</option>
+            <option [ngValue]="4">Mes 4 - Abril</option>
+            <option [ngValue]="5">Mes 5 - Mayo</option>
+            <option [ngValue]="6">Mes 6 - Junio</option>
+            <option [ngValue]="7">Mes 7 - Julio</option>
+            <option [ngValue]="8">Mes 8 - Agosto</option>
+            <option [ngValue]="9">Mes 9 - Septiembre</option>
+            <option [ngValue]="10">Mes 10 - Octubre</option>
+            <option [ngValue]="11">Mes 11 - Noviembre</option>
+            <option [ngValue]="12">Mes 12 - Diciembre</option>
+          </select>
+
+          @if (deliveryFilterYear() !== null || deliveryFilterMonth() !== null) {
+            <button (click)="resetDeliveryFilters()" class="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all cursor-pointer shadow" title="Limpiar Filtros">
+              🧹
+            </button>
+          }
+
+          <span class="px-3 py-1.5 rounded-xl bg-indigo-500/10 text-indigo-400 text-xs font-bold border border-indigo-500/20 font-mono">
+            {{ filteredMetrics().length }} de {{ metrics().length }}
+          </span>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto custom-scrollbar">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-900/90 text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-white/10">
+              <th class="py-4 px-6">Fecha / Período</th>
+              <th class="py-4 px-5">Línea</th>
+              <th class="py-4 px-5 text-center">Evolutivos</th>
+              <th class="py-4 px-5 text-center">Soportes</th>
+              <th class="py-4 px-5 text-center">Standard Change</th>
+              <th class="py-4 px-5 text-center">Total Entregas</th>
+              <th class="py-4 px-5">Observaciones</th>
+              <th class="py-4 px-5">Auditoría</th>
+              @if (authService.isAdmin()) {
+                <th class="py-4 px-6 text-right">Acciones</th>
+              }
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5 text-xs">
+            @for (m of filteredMetrics(); track m.id) {
+              <tr class="hover:bg-slate-800/40 transition-colors">
+                <td class="py-4 px-6 font-mono">
+                  <div class="font-bold text-white text-sm">📅 {{ m.deliveryDate }}</div>
+                  <div class="text-[11px] text-slate-400">{{ m.sprintOrPeriod || 'Sin período' }}</div>
+                </td>
+                <td class="py-4 px-5">
+                  <span [class]="m.projectType === 'FABRICA' ? 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30' : 'bg-teal-500/10 text-teal-400 border-teal-500/30'"
+                        class="px-2.5 py-1 rounded-xl text-[11px] font-bold border">
+                    {{ m.projectType === 'FABRICA' ? '🏭 FABRICA' : '🔧 MINOR DEMAND' }}
+                  </span>
+                </td>
+                <td class="py-4 px-5 text-center font-mono font-bold text-indigo-300 text-sm">{{ m.evolutivosCount }}</td>
+                <td class="py-4 px-5 text-center font-mono font-bold text-sky-300 text-sm">{{ m.soportesCount }}</td>
+                <td class="py-4 px-5 text-center font-mono font-bold text-purple-300 text-sm">{{ m.standardChangeCount }}</td>
+                <td class="py-4 px-5 text-center font-mono font-extrabold text-emerald-400 text-base">
+                  {{ m.evolutivosCount + m.soportesCount + m.standardChangeCount }}
+                </td>
+                <td class="py-4 px-5 text-slate-300 max-w-xs truncate">{{ m.notes || '—' }}</td>
+                <td class="py-4 px-5 text-[10px] text-slate-400">
+                  <div>👤 {{ m.createdBy || 'Sistema' }}</div>
+                  <div class="text-slate-400">🕒 {{ m.createdAt ? (m.createdAt | date:'shortDate') : '—' }}</div>
+                </td>
+                @if (authService.isAdmin()) {
+                  <td class="py-4 px-6 text-right">
+                    <button (click)="deleteMetric(m.id!, $event)" class="p-2 rounded-xl text-rose-400 hover:bg-rose-500/20 transition-all cursor-pointer" title="Eliminar entregas">
+                      🗑️
+                    </button>
+                  </td>
+                }
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="9" class="py-12 text-center text-slate-400">
+                  <div class="text-3xl mb-2">📦</div>
+                  <p class="text-sm font-semibold">No hay entregas registradas que coincidan con los filtros seleccionados.</p>
+                  <p class="text-xs text-slate-400 mt-1">Utiliza el botón "+ Registrar Entregas" para añadir información.</p>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── MODAL: Registrar Entregas del Cliente ─────────────────── -->
+  @if (showMetricModal()) {
+    <div class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4" (click)="closeMetricModal()">
+      <div class="glass-panel w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-white/20 flex flex-col max-h-[90vh] bg-slate-950/95" (click)="$event.stopPropagation()">
+        
+        <!-- Cabecera Fija -->
+        <div class="flex items-center justify-between border-b border-white/10 pb-4 shrink-0">
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>📦 Registrar Entregas del Cliente</span>
+          </h3>
+          <button (click)="closeMetricModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-indigo-500/20 text-slate-300 hover:text-indigo-400 flex items-center justify-center transition-all cursor-pointer shadow-md" title="Cerrar ventana (Esc)">
+            <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Cuerpo del Formulario con Scroll Interno -->
+        <div class="overflow-y-auto custom-scrollbar flex-1 py-4 space-y-4 text-xs pr-1">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Línea de Proyecto</label>
+              <select [ngModel]="newProjectType()" (ngModelChange)="newProjectType.set($event)"
+                      class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-indigo-500">
+                <option value="FABRICA">🏭 FÁBRICA</option>
+                <option value="MINOR_DEMAND">🔧 MINOR DEMAND</option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Fecha de Entrega</label>
+              <input type="date" [ngModel]="newDeliveryDate()" (ngModelChange)="newDeliveryDate.set($event)"
+                     class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Año</label>
+              <input type="number" [ngModel]="newYear()" (ngModelChange)="newYear.set($event)"
+                     class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-indigo-500" />
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Mes (1-12)</label>
+              <input type="number" min="1" max="12" [ngModel]="newMonth()" (ngModelChange)="newMonth.set($event)"
+                     class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-indigo-500" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Período / Semana (Opcional)</label>
+            <input type="text" placeholder="ej. Semana 1, Sprint 12, etc." [ngModel]="newSprintOrPeriod()" (ngModelChange)="newSprintOrPeriod.set($event)"
+                   class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-indigo-500" />
+          </div>
+
+          <div class="grid grid-cols-3 gap-3 p-4 rounded-2xl bg-slate-900/80 border border-white/10">
+            <div>
+              <label class="block font-semibold text-indigo-300 mb-1">Evolutivos</label>
+              <input type="number" min="0" [ngModel]="newEvolutivosCount()" (ngModelChange)="newEvolutivosCount.set($event)"
+                     class="w-full bg-slate-950 border border-indigo-500/30 rounded-xl px-3 py-2 text-center text-white font-mono font-bold" />
+            </div>
+            <div>
+              <label class="block font-semibold text-sky-300 mb-1">Soportes</label>
+              <input type="number" min="0" [ngModel]="newSoportesCount()" (ngModelChange)="newSoportesCount.set($event)"
+                     class="w-full bg-slate-950 border border-sky-500/30 rounded-xl px-3 py-2 text-center text-white font-mono font-bold" />
+            </div>
+            <div>
+              <label class="block font-semibold text-purple-300 mb-1">Standard Change</label>
+              <input type="number" min="0" [ngModel]="newStandardChangeCount()" (ngModelChange)="newStandardChangeCount.set($event)"
+                     class="w-full bg-slate-950 border border-purple-500/30 rounded-xl px-3 py-2 text-center text-white font-mono font-bold" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Observaciones</label>
+            <textarea rows="2" placeholder="Notas sobre el cargue de entregas..." [ngModel]="newNotes()" (ngModelChange)="newNotes.set($event)"
+                      class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-indigo-500"></textarea>
+          </div>
+        </div>
+
+        <!-- Pie de Botones Fijo -->
+        <div class="flex items-center justify-end gap-3 border-t border-white/10 pt-4 shrink-0">
+          <button (click)="closeMetricModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors">Cancelar / Salir</button>
+          <button (click)="createMetric()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 transition-all">Guardar Entregas</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── MODAL: Registrar Devolución IBL ───────────────────────── -->
+  @if (showReturnModal()) {
+    <div class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4" (click)="closeReturnModal()">
+      <div class="glass-panel w-full max-w-lg rounded-3xl p-6 shadow-2xl border border-white/20 flex flex-col max-h-[90vh] bg-slate-950/95" (click)="$event.stopPropagation()">
+        
+        <!-- Cabecera Fija con Botón de Cierre X -->
+        <div class="flex items-center justify-between border-b border-white/10 pb-4 shrink-0">
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>⚠️ Registrar Devolución del Cliente</span>
+          </h3>
+          <button (click)="closeReturnModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 flex items-center justify-center transition-all cursor-pointer shadow-md" title="Cerrar ventana (Esc)">
+            <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Cuerpo del Formulario con Scroll Interno -->
+        <div class="overflow-y-auto custom-scrollbar flex-1 py-4 space-y-4 text-xs pr-1">
+          <div class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 space-y-1">
+            <div class="font-bold flex items-center gap-1.5">💡 Regla de Negocio IBL:</div>
+            <p class="text-[11px] text-amber-200/90 leading-relaxed">
+              • <strong>1ª Devolución</strong>: Se almacena pero <strong>NO cuenta como defecto</strong> en la fórmula.<br>
+              • <strong>2ª Devolución en adelante</strong>: Se marcará automáticamente como <strong>Defecto Reincidente</strong> y restará en el % de calidad.
+            </p>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Código IBL / ID Requerimiento *</label>
+            <input type="text" placeholder="ej. IBL-2045, HU-901" [ngModel]="newReturnIbl()" (ngModelChange)="newReturnIbl.set($event)"
+                   class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-white font-mono font-bold uppercase focus:outline-none focus:border-rose-500" />
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Tipo de Proyecto *</label>
+            <select [ngModel]="newReturnProjectType()" (ngModelChange)="newReturnProjectType.set($event)"
+                    class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-rose-500">
+              <option value="FABRICA">🏭 FÁBRICA</option>
+              <option value="MINOR_DEMAND">🔧 MINOR DEMAND</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Categoría del Ítem *</label>
+            <select [ngModel]="newReturnCategory()" (ngModelChange)="newReturnCategory.set($event)"
+                    class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-rose-500">
+              <option value="EVOLUTIVO">🚀 EVOLUTIVO</option>
+              <option value="SOPORTE">🛠️ SOPORTE</option>
+              <option value="STANDARD_CHANGE">🔄 STANDARD CHANGE</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Año de Registro *</label>
+              <input type="number" [ngModel]="newReturnYear()" (ngModelChange)="newReturnYear.set(+$event)"
+                     class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-white font-mono font-bold focus:outline-none focus:border-rose-500" required />
+            </div>
+            <div>
+              <label class="block font-semibold text-slate-300 mb-1">Mes de Registro *</label>
+              <select [ngModel]="newReturnMonth()" (ngModelChange)="newReturnMonth.set(+$event)"
+                      class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-rose-500">
+                <option [value]="1">Mes 1 - Enero</option>
+                <option [value]="2">Mes 2 - Febrero</option>
+                <option [value]="3">Mes 3 - Marzo</option>
+                <option [value]="4">Mes 4 - Abril</option>
+                <option [value]="5">Mes 5 - Mayo</option>
+                <option [value]="6">Mes 6 - Junio</option>
+                <option [value]="7">Mes 7 - Julio</option>
+                <option [value]="8">Mes 8 - Agosto</option>
+                <option [value]="9">Mes 9 - Septiembre</option>
+                <option [value]="10">Mes 10 - Octubre</option>
+                <option [value]="11">Mes 11 - Noviembre</option>
+                <option [value]="12">Mes 12 - Diciembre</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">Causa Raíz *</label>
+            <textarea rows="3" placeholder="Explicación detallada de la causa raíz de la devolución del cliente..." [ngModel]="newReturnRootCause()" (ngModelChange)="newReturnRootCause.set($event)"
+                      class="w-full bg-slate-900 border border-white/10 rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-rose-500"></textarea>
+          </div>
+        </div>
+
+        <!-- Pie de Botones Fijo -->
+        <div class="flex items-center justify-end gap-3 border-t border-white/10 pt-4 shrink-0">
+          <button (click)="closeReturnModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors">Cancelar / Salir</button>
+          <button (click)="createReturn()" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg shadow-rose-600/30 transition-all">Registrar Devolución</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── MODAL: Historial de Devoluciones del Cliente ───────────── -->
+  @if (showReturnsListModal()) {
+    <div class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6" (click)="showReturnsListModal.set(false)">
+      <div class="glass-panel w-full max-w-6xl rounded-3xl p-6 shadow-2xl border border-white/20 flex flex-col max-h-[90vh] bg-slate-950/95 space-y-4" (click)="$event.stopPropagation()">
+        
+        <!-- Cabecera Fija -->
+        <div class="flex items-center justify-between border-b border-white/10 pb-4 shrink-0">
+          <div>
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+              <span>📋 Historial de Devoluciones del Cliente (IBL)</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">Detalle consolidado de IBLs devueltos, iteraciones y afectación en el cálculo de calidad</p>
+          </div>
+          <button (click)="showReturnsListModal.set(false)" class="w-9 h-9 rounded-full bg-white/10 hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 flex items-center justify-center transition-all cursor-pointer shadow-md" title="Cerrar ventana (Esc)">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Barra de Filtros del Modal -->
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 p-3.5 rounded-2xl bg-slate-900/90 border border-white/10 shrink-0 text-xs">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 mb-1">Año</label>
+            <input type="number" placeholder="ej. 2026" [ngModel]="listFilterYear()" (ngModelChange)="listFilterYear.set($event ? +$event : null)"
+                   class="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-1.5 text-white font-mono font-bold focus:outline-none focus:border-indigo-500" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 mb-1">Mes</label>
+            <select [ngModel]="listFilterMonth()" (ngModelChange)="listFilterMonth.set($event ? +$event : null)"
+                    class="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-indigo-500">
+              <option [ngValue]="null">📅 Todos los Meses</option>
+              <option [ngValue]="1">Mes 1 - Enero</option>
+              <option [ngValue]="2">Mes 2 - Febrero</option>
+              <option [ngValue]="3">Mes 3 - Marzo</option>
+              <option [ngValue]="4">Mes 4 - Abril</option>
+              <option [ngValue]="5">Mes 5 - Mayo</option>
+              <option [ngValue]="6">Mes 6 - Junio</option>
+              <option [ngValue]="7">Mes 7 - Julio</option>
+              <option [ngValue]="8">Mes 8 - Agosto</option>
+              <option [ngValue]="9">Mes 9 - Septiembre</option>
+              <option [ngValue]="10">Mes 10 - Octubre</option>
+              <option [ngValue]="11">Mes 11 - Noviembre</option>
+              <option [ngValue]="12">Mes 12 - Diciembre</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 mb-1">Categoría</label>
+            <select [ngModel]="listFilterCategory()" (ngModelChange)="listFilterCategory.set($event)"
+                    class="w-full bg-slate-950 border border-white/10 rounded-xl px-3 py-1.5 text-white focus:outline-none focus:border-indigo-500">
+              <option value="TODAS">🎯 Todas las Categorías</option>
+              <option value="EVOLUTIVO">🚀 EVOLUTIVO</option>
+              <option value="SOPORTE">🛠️ SOPORTE</option>
+              <option value="STANDARD_CHANGE">🔄 STANDARD CHANGE</option>
+            </select>
+          </div>
+          <div class="flex items-end">
+            <button (click)="resetListFilters()" class="w-full py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-white/10">
+              <span>🧹 Limpiar Filtros</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Cuerpo de Tabla con Scroll Interno -->
+        <div class="overflow-y-auto custom-scrollbar flex-1 py-2 pr-1">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-900/90 text-[11px] font-bold text-slate-300 uppercase tracking-wider border-b border-white/10 sticky top-0 backdrop-blur-md z-10">
+                <th class="py-3.5 px-4">Periodo (Mes/Año)</th>
+                <th class="py-3.5 px-4">Línea de Proyecto</th>
+                <th class="py-3.5 px-4">Código IBL</th>
+                <th class="py-3.5 px-4">Categoría</th>
+                <th class="py-3.5 px-4 text-center">Iteración IBL</th>
+                <th class="py-3.5 px-4 text-center">Afecta Calidad?</th>
+                <th class="py-3.5 px-4">Causa Raíz</th>
+                @if (authService.isAdmin()) {
+                  <th class="py-3.5 px-4 text-right">Acción</th>
+                }
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5 text-xs">
+              @for (r of filteredReturns(); track r.id) {
+                <tr class="hover:bg-slate-800/40 transition-colors">
+                  <td class="py-3.5 px-4 font-mono font-bold text-slate-200">📅 Mes {{ r.month }}/{{ r.year }}</td>
+                  <td class="py-3.5 px-4">
+                    <span [class]="r.projectType === 'MINOR_DEMAND' ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40' : 'bg-sky-500/20 text-sky-300 border-sky-500/40'" class="px-2.5 py-1 rounded-full text-[10px] font-extrabold border">
+                      {{ r.projectType === 'MINOR_DEMAND' ? '🔧 MINOR DEMAND' : '🏭 FÁBRICA' }}
+                    </span>
+                  </td>
+                  <td class="py-3.5 px-4 font-mono font-black text-rose-400 text-sm">{{ r.ibl }}</td>
+                  <td class="py-3.5 px-4">
+                    <span [class]="r.category === 'EVOLUTIVO' ? 'text-indigo-300 font-bold' : r.category === 'SOPORTE' ? 'text-sky-300 font-bold' : 'text-purple-300 font-bold'">
+                      {{ r.category === 'EVOLUTIVO' ? '🚀 EVOLUTIVO' : r.category === 'SOPORTE' ? '🛠️ SOPORTE' : '🔄 STANDARD CHANGE' }}
+                    </span>
+                  </td>
+                  <td class="py-3.5 px-4 text-center font-mono font-black text-white text-sm">
+                    #{{ r.returnCount }}
+                  </td>
+                  <td class="py-3.5 px-4 text-center">
+                    @if (r.countedInQuality) {
+                      <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                        ⚠️ SÍ (2ª+ vez)
+                      </span>
+                    } @else {
+                      <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                        ℹ️ NO (1ª vez)
+                      </span>
+                    }
+                  </td>
+                  <td class="py-3.5 px-4 text-slate-300 max-w-md leading-relaxed">{{ r.rootCause }}</td>
+                  @if (authService.isAdmin()) {
+                    <td class="py-3.5 px-4 text-right">
+                      <button (click)="deleteReturn(r.id!)" class="p-2 rounded-xl text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 transition-all cursor-pointer" title="Eliminar Devolución">🗑️</button>
+                    </td>
+                  }
+                </tr>
+              } @empty {
+                <tr>
+                  <td [attr.colspan]="authService.isAdmin() ? 8 : 7" class="py-16 text-center text-slate-400">
+                    <div class="text-3xl mb-2">🎉</div>
+                    <p class="text-sm font-semibold">No se encontraron devoluciones con los filtros aplicados.</p>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pie de Botones Fijo -->
+        <div class="flex items-center justify-between border-t border-white/10 pt-4 shrink-0 text-xs text-slate-400">
+          <div>Devoluciones mostradas: <strong class="text-white font-mono font-bold">{{ filteredReturns().length }}</strong> <span class="text-slate-500">(de {{ returns().length }} en total)</span></div>
+          <button (click)="showReturnsListModal.set(false)" class="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold transition-colors cursor-pointer">Cerrar Ventana</button>
+        </div>
+      </div>
+    </div>
+  }
+
+</div>

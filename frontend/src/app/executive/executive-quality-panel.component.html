@@ -1,0 +1,180 @@
+<div class="min-h-screen bg-[#0a0a1a] text-slate-100 font-sans pb-12">
+  <app-navbar></app-navbar>
+
+  <!-- ── Main Content ── -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-6">
+
+    <!-- Header & Line Filter -->
+    <div class="flex items-start justify-between mb-6 gap-4 flex-wrap">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-white">Panel Ejecutivo de Calidad Consolidada & Ratio</h1>
+        <p class="text-sm text-slate-400 mt-1">Monitoreo en Tiempo Real del Target de Calidad = 95% y Seguimiento de Bugs</p>
+      </div>
+
+      <!-- Scope & Period Filter Tabs -->
+      <div class="flex items-center gap-3 flex-wrap">
+        <app-period-filter (periodChange)="onPeriodChange($event)"></app-period-filter>
+
+        <div class="flex gap-1 bg-white/[0.03] border border-white/10 p-1 rounded-xl">
+          <button class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all" [class.bg-indigo-500\/20]="selectedProjectType() === ''" [class.text-indigo-400]="selectedProjectType() === ''" [class.text-slate-400]="selectedProjectType() !== ''" (click)="filterByType('')">CONSOLIDADO GENERAL</button>
+          <button class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all" [class.bg-indigo-500\/20]="selectedProjectType() === 'FABRICA'" [class.text-indigo-400]="selectedProjectType() === 'FABRICA'" [class.text-slate-400]="selectedProjectType() !== 'FABRICA'" (click)="filterByType('FABRICA')">FÁBRICA</button>
+          <button class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all" [class.bg-indigo-500\/20]="selectedProjectType() === 'MINOR_DEMAND'" [class.text-indigo-400]="selectedProjectType() === 'MINOR_DEMAND'" [class.text-slate-400]="selectedProjectType() !== 'MINOR_DEMAND'" (click)="filterByType('MINOR_DEMAND')">MINOR DEMAND</button>
+        </div>
+      </div>
+    </div>
+
+    @if (isLoading()) {
+      <div class="p-12 text-center text-slate-400">Calculando indicadores ejecutivos de calidad...</div>
+    } @else if (metrics(); as m) {
+
+      <!-- ── HERO HERO CARD: Target de Calidad = 95% ── -->
+      <div class="hero-banner-card p-6 mb-8 relative overflow-hidden">
+        <div class="flex items-center justify-between gap-6 flex-wrap">
+
+          <div class="flex flex-col gap-2 max-w-xl">
+            <span class="text-xs font-extrabold uppercase tracking-wider hero-subtitle">Fórmula de Gobierno QA Portal</span>
+            <div class="text-3xl font-black hero-title tracking-tight">
+              % Calidad: <span [class.score-emerald]="m.isTargetMet" [class.score-rose]="!m.isTargetMet" class="font-black text-4xl ml-1">{{ m.qualityTargetScore }}%</span>
+            </div>
+            <p class="text-xs hero-target-text mt-1">
+              Fórmula Oficial: <code class="hero-code px-2.5 py-1 rounded-lg font-mono font-bold text-xs shadow-inner">[1 - (Total Bugs / Casos Exitosos OK)] * 100</code>
+            </p>
+            <div class="flex items-center gap-3 mt-3 flex-wrap">
+              @if (m.isTargetMet) {
+                <span class="px-4 py-1.5 badge-target-success rounded-xl text-xs font-black uppercase flex items-center gap-1.5">
+                  ✅ TARGET CUMPLIDO (>= 95%)
+                </span>
+              } @else {
+                <span class="px-4 py-1.5 badge-target-danger rounded-xl text-xs font-black uppercase flex items-center gap-1.5 animate-pulse">
+                  🚨 TARGET EN RIESGO (< 95%)
+                </span>
+              }
+              <span class="text-xs hero-target-text font-semibold">Meta Objetivo Estándar: <strong class="underline">95.00%</strong></span>
+            </div>
+          </div>
+
+          <!-- Progress Ring Gauge -->
+          <div class="hero-gauge-box flex flex-col items-center justify-center p-5 rounded-2xl shrink-0 min-w-[210px] shadow-xl">
+            <div class="text-4xl font-black tracking-tight" [class.score-emerald]="m.isTargetMet" [class.score-rose]="!m.isTargetMet">
+              {{ m.qualityTargetScore }}%
+            </div>
+            <div class="text-xs hero-gauge-label mt-1 font-extrabold uppercase tracking-wider">Indicador Global</div>
+            <div class="w-full bg-slate-200 dark:bg-slate-700/50 rounded-full h-3 mt-3 overflow-hidden border border-slate-300 dark:border-slate-600/50 p-0.5">
+              <div class="h-2 rounded-full transition-all duration-1000 bg-gradient-to-r"
+                [class.from-emerald-500]="m.isTargetMet" [class.to-emerald-300]="m.isTargetMet"
+                [class.from-rose-500]="!m.isTargetMet" [class.to-rose-300]="!m.isTargetMet"
+                [style.width.%]="m.qualityTargetScore"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── GRID: Esfuerzo & Ratio + BugTracker ── -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+
+        <!-- Card 1: Esfuerzo & Ratio de Ejecución Real -->
+        <div class="bg-white/[0.04] border border-white/10 rounded-3xl p-6 backdrop-blur-md shadow-2xl flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                🧪 Ratio & Esfuerzo de Ejecución
+              </h2>
+              <span class="text-xs text-slate-400 font-mono">1 a N Retests</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-6">
+              <div class="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-2xl">
+                <span class="text-xs text-indigo-300 font-semibold">Ratio de Cobertura Real %</span>
+                <div class="text-2xl font-black text-indigo-400 mt-1">{{ m.executionRatioPct }}%</div>
+                <span class="text-[11px] text-slate-400">Casos OK / Total Ejecuciones</span>
+              </div>
+
+              <div class="bg-purple-500/10 border border-purple-500/20 p-4 rounded-2xl">
+                <span class="text-xs text-purple-300 font-semibold">Esfuerzo de Ejecución</span>
+                <div class="text-2xl font-black text-purple-400 mt-1">{{ m.executionEffort }} <span class="text-xs text-slate-400 font-normal">exec/OK</span></div>
+                <span class="text-[11px] text-slate-400">Ejecuciones por caso OK</span>
+              </div>
+            </div>
+
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between py-1 border-b border-white/5">
+                <span class="text-slate-400">Casos Diseñados Totales:</span>
+                <span class="font-bold text-white">{{ m.totalDesignedCases }}</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-white/5">
+                <span class="text-slate-400">Casos Exitosos (OK):</span>
+                <span class="font-bold text-emerald-400">{{ m.totalSuccessfulCases }}</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-white/5">
+                <span class="text-slate-400">Casos Fallidos / Bloqueados:</span>
+                <span class="font-bold text-rose-400">{{ m.totalFailedCases + m.totalBlockedCases }}</span>
+              </div>
+              <div class="flex justify-between py-1">
+                <span class="text-slate-400">Total Ejecuciones Realizadas:</span>
+                <span class="font-bold text-indigo-300">{{ m.totalExecutions }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Seguimiento de Bugs & Reinyecciones (RF03) -->
+        <div class="bg-white/[0.04] border border-white/10 rounded-3xl p-6 backdrop-blur-md shadow-2xl flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                🐛 BugTracker & Trazabilidad Reinyección
+              </h2>
+              <span class="text-xs text-rose-400 font-bold">RF03 Auto-Detect</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-6">
+              <div class="bg-rose-500/10 border border-rose-500/20 p-4 rounded-2xl">
+                <span class="text-xs text-rose-300 font-semibold">Reinyecciones Detectadas</span>
+                <div class="text-2xl font-black text-rose-400 mt-1">{{ m.reinjectionsCount }}</div>
+                <span class="text-[11px] text-rose-300 font-bold">Tasa: {{ m.reinjectionRatePct }}%</span>
+              </div>
+
+              <div class="bg-amber-500/10 border border-amber-500/20 p-4 rounded-2xl">
+                <span class="text-xs text-amber-300 font-semibold">Bugs en Gestión (Abiertos)</span>
+                <div class="text-2xl font-black text-amber-400 mt-1">{{ m.openBugsCount }}</div>
+                <span class="text-[11px] text-slate-400">De {{ m.totalBugs }} incidencias</span>
+              </div>
+            </div>
+
+            <div class="space-y-2 text-xs">
+              <div class="flex justify-between py-1 border-b border-white/5">
+                <span class="text-slate-400">Total Defectos Reportados:</span>
+                <span class="font-bold text-white">{{ m.totalBugs }}</span>
+              </div>
+              <div class="flex justify-between py-1 border-b border-white/5">
+                <span class="text-slate-400">Incidencias Resueltas / Cerradas:</span>
+                <span class="font-bold text-emerald-400">{{ m.resolvedBugsCount }}</span>
+              </div>
+              <div class="flex justify-between py-1">
+                <span class="text-slate-400">Cumplimiento SLA de Entregas (RF04):</span>
+                <span class="font-bold text-purple-300">{{ m.slaComplianceRatio }}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── ECharts Bar Chart Executive Trend ─────────────────── -->
+      <div class="bg-white/[0.04] border border-white/10 rounded-3xl p-6 backdrop-blur-md space-y-4 shadow-xl mb-8">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+              <span>📈 Tendencia Histórica de Calidad Consolidada (ECharts)</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">Evolución mes a mes del porcentaje de calidad consolidado frente al Target del 95%</p>
+          </div>
+        </div>
+
+        <div #chartExecutiveTrendContainer class="w-full h-80"></div>
+      </div>
+
+    }
+  </main>
+</div>
