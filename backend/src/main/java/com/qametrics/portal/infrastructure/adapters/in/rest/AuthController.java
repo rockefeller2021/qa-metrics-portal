@@ -14,7 +14,6 @@ import java.util.Map;
  * Adaptador REST de entrada para Autenticación.
  * Expone los endpoints públicos de login y refresh.
  */
-@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/auth")
 @Tag(name = "Autenticación", description = "Endpoints de login y gestión de tokens JWT")
