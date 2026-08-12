@@ -39,27 +39,30 @@ export class UserManagementComponent implements OnInit {
 
   // ── Computed Lists & Summaries ────────────────────────────
   filteredUsers = computed(() => {
-    const list  = this.userService.users();
+    const list  = this.userService.users() || [];
     const query = this.searchQuery().toLowerCase().trim();
     const role  = this.selectedRole();
 
     return list.filter(u => {
-      const uRole = (u.role === 'ADMIN' || u.role === 'ROLE_ADMIN') ? 'ROLE_ADMIN' : 'ROLE_ANALYST';
+      if (!u) return false;
+      const uRole = u.role && (u.role === 'ADMIN' || u.role === 'ROLE_ADMIN') ? 'ROLE_ADMIN' : 'ROLE_ANALYST';
       const matchRole  = !role || uRole === role;
-      const matchQuery = !query ||
-        u.username.toLowerCase().includes(query) ||
-        (u.email && u.email.toLowerCase().includes(query));
+      const username   = u.username ? u.username.toLowerCase() : '';
+      const email      = u.email ? u.email.toLowerCase() : '';
+      const matchQuery = !query || username.includes(query) || email.includes(query);
       return matchRole && matchQuery;
     });
   });
 
-  totalUsers = computed(() => this.userService.users().length);
-  adminUsers = computed(() => this.userService.users().filter(u => u.role === 'ROLE_ADMIN' || u.role === 'ADMIN').length);
-  analystUsers = computed(() => this.userService.users().filter(u => u.role === 'ROLE_ANALYST' || u.role === 'ANALYST').length);
-  activeUsers = computed(() => this.userService.users().filter(u => u.active).length);
+  totalUsers   = computed(() => (this.userService.users() || []).length);
+  adminUsers   = computed(() => (this.userService.users() || []).filter(u => u && (u.role === 'ROLE_ADMIN' || u.role === 'ADMIN')).length);
+  analystUsers = computed(() => (this.userService.users() || []).filter(u => u && (u.role === 'ROLE_ANALYST' || u.role === 'ANALYST')).length);
+  activeUsers  = computed(() => (this.userService.users() || []).filter(u => u && u.active).length);
 
   ngOnInit(): void {
-    this.userService.getUsers().subscribe();
+    this.userService.getUsers().subscribe({
+      error: (err) => console.error('Error al cargar lista de usuarios:', err)
+    });
   }
 
   openCreateModal(): void {
@@ -77,17 +80,26 @@ export class UserManagementComponent implements OnInit {
 
     this.userService.createUser({
       username: this.newUsername().trim().toLowerCase(),
-      email:    this.newEmail().trim(),
+      email:    this.newEmail() ? this.newEmail().trim() : undefined,
       password: this.newPassword().trim(),
       role:     this.newRole()
     }).subscribe({
-      next: () => this.closeCreateModal()
+      next: () => {
+        alert('Usuario creado exitosamente.');
+        this.closeCreateModal();
+      },
+      error: (err) => {
+        const msg = err?.error?.message || err?.message || 'No se pudo crear el usuario.';
+        alert('Error al crear usuario: ' + msg);
+      }
     });
   }
 
   toggleStatus(user: UserAccount): void {
     if (!user.id) return;
-    this.userService.toggleUserStatus(user.id, !user.active).subscribe();
+    this.userService.toggleUserStatus(user.id, !user.active).subscribe({
+      error: (err) => alert('Error al cambiar estado del usuario: ' + (err?.error?.message || err?.message))
+    });
   }
 
   openPasswordModal(user: UserAccount): void {
@@ -110,13 +122,16 @@ export class UserManagementComponent implements OnInit {
       next: () => {
         alert('Contraseña actualizada correctamente.');
         this.closePasswordModal();
-      }
+      },
+      error: (err) => alert('Error al actualizar contraseña: ' + (err?.error?.message || err?.message))
     });
   }
 
   deleteUser(id: number, username: string): void {
     if (confirm(`¿Está seguro de eliminar al usuario '${username}' del sistema?`)) {
-      this.userService.deleteUser(id).subscribe();
+      this.userService.deleteUser(id).subscribe({
+        error: (err) => alert('Error al eliminar usuario: ' + (err?.error?.message || err?.message))
+      });
     }
   }
 

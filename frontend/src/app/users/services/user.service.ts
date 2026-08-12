@@ -22,10 +22,13 @@ export class UserService {
     return this.http.get<UserAccount[]>(this.apiUrl).pipe(
       tap({
         next: (data) => {
-          this.users.set(data);
+          this.users.set(data || []);
           this.isLoading.set(false);
         },
-        error: () => this.isLoading.set(false)
+        error: (err) => {
+          this.isLoading.set(false);
+          console.error('Error HTTP al obtener usuarios:', err);
+        }
       })
     );
   }
