@@ -22,8 +22,14 @@ export class AuthService {
   readonly currentUser   = this._currentUser.asReadonly();
   readonly isLoading     = this._isLoading.asReadonly();
   readonly isAuthenticated = computed(() => this._currentUser() !== null);
-  readonly isAdmin         = computed(() => this._currentUser()?.role === 'ROLE_ADMIN');
-  readonly isAnalyst       = computed(() => this._currentUser()?.role === 'ROLE_ANALYST');
+  readonly isAdmin         = computed(() => {
+    const role = this._currentUser()?.role;
+    return role ? role.includes('ADMIN') : false;
+  });
+  readonly isAnalyst       = computed(() => {
+    const role = this._currentUser()?.role;
+    return role ? role.includes('ANALYST') : false;
+  });
 
   constructor(private http: HttpClient, private router: Router) {}
 
