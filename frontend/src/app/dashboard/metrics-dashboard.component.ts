@@ -158,10 +158,20 @@ export class MetricsDashboardComponent implements OnInit, AfterViewInit, OnDestr
 
   private ensureChartRendered(): void {
     if (!this.chartTrendContainer?.nativeElement) return;
+
+    if (this.trendChartInstance) {
+      const currentDom = this.trendChartInstance.getDom();
+      if (!currentDom || !document.body.contains(currentDom) || currentDom !== this.chartTrendContainer.nativeElement) {
+        try { this.trendChartInstance.dispose(); } catch (e) {}
+        this.trendChartInstance = null;
+      }
+    }
+
     if (!this.trendChartInstance) {
       this.trendChartInstance = echarts.init(this.chartTrendContainer.nativeElement);
       window.addEventListener('resize', () => this.trendChartInstance?.resize());
     }
+
     this.updateTrendChart();
   }
 

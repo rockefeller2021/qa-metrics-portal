@@ -137,10 +137,20 @@ export class ExecutiveQualityPanelComponent implements OnInit, AfterViewInit, On
 
   private ensureChartRendered(): void {
     if (!this.chartExecutiveTrendContainer?.nativeElement) return;
+
+    if (this.trendChartInstance) {
+      const currentDom = this.trendChartInstance.getDom();
+      if (!currentDom || !document.body.contains(currentDom) || currentDom !== this.chartExecutiveTrendContainer.nativeElement) {
+        try { this.trendChartInstance.dispose(); } catch (e) {}
+        this.trendChartInstance = null;
+      }
+    }
+
     if (!this.trendChartInstance) {
       this.trendChartInstance = echarts.init(this.chartExecutiveTrendContainer.nativeElement);
       window.addEventListener('resize', () => this.trendChartInstance?.resize());
     }
+
     this.updateTrendChart();
   }
 
