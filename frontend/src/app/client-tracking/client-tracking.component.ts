@@ -278,7 +278,13 @@ export class ClientTrackingComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   private updateCategoryChart(): void {
-    if (!this.chartInstance) return;
+    if (!this.chartInstance) {
+      if (this.chartContainer?.nativeElement) {
+        this.chartInstance = echarts.init(this.chartContainer.nativeElement);
+      } else {
+        return;
+      }
+    }
     const sum = this.summary();
     if (!sum || !sum.monthlyTrend) return;
 
@@ -416,7 +422,13 @@ export class ClientTrackingComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   private updateConsolidatedChart(): void {
-    if (!this.consolidatedChartInstance) return;
+    if (!this.consolidatedChartInstance) {
+      if (this.chartConsolidatedContainer?.nativeElement) {
+        this.consolidatedChartInstance = echarts.init(this.chartConsolidatedContainer.nativeElement);
+      } else {
+        return;
+      }
+    }
     const sum = this.summary();
     if (!sum || !sum.monthlyTrend) return;
 

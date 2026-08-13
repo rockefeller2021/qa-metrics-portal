@@ -104,6 +104,7 @@ export class ExecutiveQualityPanelComponent implements OnInit, AfterViewInit, On
       next: (data) => {
         this.metrics.set(data);
         this.isLoading.set(false);
+        setTimeout(() => this.ensureChartRendered(), 100);
       },
       error: () => this.isLoading.set(false)
     });
@@ -119,7 +120,7 @@ export class ExecutiveQualityPanelComponent implements OnInit, AfterViewInit, On
     this.http.get<MonthlyTrendData[]>(`${environment.apiUrl}/metrics/trend`, { params: trendParams }).subscribe({
       next: (data) => {
         this.trendData.set(data);
-        this.updateTrendChart();
+        setTimeout(() => this.ensureChartRendered(), 100);
       },
       error: () => this.trendData.set([])
     });
@@ -131,14 +132,27 @@ export class ExecutiveQualityPanelComponent implements OnInit, AfterViewInit, On
   }
 
   private initTrendChart(): void {
-    if (!this.chartExecutiveTrendContainer) return;
-    this.trendChartInstance = echarts.init(this.chartExecutiveTrendContainer.nativeElement);
+    this.ensureChartRendered();
+  }
+
+  private ensureChartRendered(): void {
+    if (!this.chartExecutiveTrendContainer?.nativeElement) return;
+    if (!this.trendChartInstance) {
+      this.trendChartInstance = echarts.init(this.chartExecutiveTrendContainer.nativeElement);
+      window.addEventListener('resize', () => this.trendChartInstance?.resize());
+    }
     this.updateTrendChart();
-    window.addEventListener('resize', () => this.trendChartInstance?.resize());
   }
 
   private updateTrendChart(): void {
-    if (!this.trendChartInstance) return;
+    if (!this.trendChartInstance) {
+      if (this.chartExecutiveTrendContainer?.nativeElement) {
+        this.trendChartInstance = echarts.init(this.chartExecutiveTrendContainer.nativeElement);
+        window.addEventListener('resize', () => this.trendChartInstance?.resize());
+      } else {
+        return;
+      }
+    }
     const data = this.trendData();
     const months = data.map(d => d.monthName);
 

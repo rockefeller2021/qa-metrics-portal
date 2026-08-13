@@ -124,6 +124,7 @@ export class MetricsDashboardComponent implements OnInit, AfterViewInit, OnDestr
         next: (data) => {
           this.dashboardData.set(data);
           this.isLoading.set(false);
+          setTimeout(() => this.ensureChartRendered(), 100);
         },
         error: () => {
           this.dashboardData.set(this.getEmptyData());
@@ -141,7 +142,7 @@ export class MetricsDashboardComponent implements OnInit, AfterViewInit, OnDestr
       .subscribe({
         next: (data) => {
           this.trendData.set(data);
-          this.updateTrendChart();
+          setTimeout(() => this.ensureChartRendered(), 100);
         },
         error: () => this.trendData.set([])
       });
@@ -152,14 +153,27 @@ export class MetricsDashboardComponent implements OnInit, AfterViewInit, OnDestr
   }
 
   private initTrendChart(): void {
-    if (!this.chartTrendContainer) return;
-    this.trendChartInstance = echarts.init(this.chartTrendContainer.nativeElement);
+    this.ensureChartRendered();
+  }
+
+  private ensureChartRendered(): void {
+    if (!this.chartTrendContainer?.nativeElement) return;
+    if (!this.trendChartInstance) {
+      this.trendChartInstance = echarts.init(this.chartTrendContainer.nativeElement);
+      window.addEventListener('resize', () => this.trendChartInstance?.resize());
+    }
     this.updateTrendChart();
-    window.addEventListener('resize', () => this.trendChartInstance?.resize());
   }
 
   private updateTrendChart(): void {
-    if (!this.trendChartInstance) return;
+    if (!this.trendChartInstance) {
+      if (this.chartTrendContainer?.nativeElement) {
+        this.trendChartInstance = echarts.init(this.chartTrendContainer.nativeElement);
+        window.addEventListener('resize', () => this.trendChartInstance?.resize());
+      } else {
+        return;
+      }
+    }
     const data = this.trendData();
     const months = data.map(d => d.monthName);
 
