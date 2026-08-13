@@ -46,7 +46,8 @@ export class PeriodFilterComponent implements OnInit {
   periodChange = output<PeriodSelection>();
 
   ngOnInit(): void {
-    this.selectedYear.set(2026);
+    this.selectedYear.set('');
+    this.selectedMonth.set('');
   }
 
   onYearChange(val: string): void {
