@@ -131,7 +131,7 @@ export class MetricsDashboardComponent implements OnInit, AfterViewInit, OnDestr
         }
       });
 
-    // Cargar tendencia mensual ECharts
+    // Cargar tendencia mensual
     let trendParams = new HttpParams();
     if (this.selectedYear()) {
       trendParams = trendParams.set('year', this.selectedYear().toString());

@@ -32,12 +32,12 @@
         <div class="flex items-center justify-between gap-6 flex-wrap">
 
           <div class="flex flex-col gap-2 max-w-xl">
-            <span class="text-xs font-extrabold uppercase tracking-wider hero-subtitle">Fórmula de Gobierno QA Portal</span>
+            <span class="text-xs font-extrabold uppercase tracking-wider hero-subtitle">Indicador de Gobierno QA Portal</span>
             <div class="text-3xl font-black hero-title tracking-tight">
               % Calidad: <span [class.score-emerald]="m.isTargetMet" [class.score-rose]="!m.isTargetMet" class="font-black text-4xl ml-1">{{ m.qualityTargetScore }}%</span>
             </div>
             <p class="text-xs hero-target-text mt-1">
-              Fórmula Oficial: <code class="hero-code px-2.5 py-1 rounded-lg font-mono font-bold text-xs shadow-inner">[1 - (Total Bugs / Casos Exitosos OK)] * 100</code>
+              Medición consolidada de efectividad operativa basada en ejecuciones exitosas e incidencias reportadas.
             </p>
             <div class="flex items-center gap-3 mt-3 flex-wrap">
               @if (m.isTargetMet) {
@@ -166,7 +166,7 @@
         <div class="flex items-center justify-between">
           <div>
             <h3 class="text-lg font-bold text-white flex items-center gap-2">
-              <span>📈 Tendencia Histórica de Calidad Consolidada (ECharts)</span>
+              <span>📈 Tendencia Histórica de Calidad Consolidada</span>
             </h3>
             <p class="text-xs text-slate-400 mt-0.5">Evolución mes a mes del porcentaje de calidad consolidado frente al Target del 95%</p>
           </div>

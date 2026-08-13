@@ -96,7 +96,17 @@ public class MetricsController {
     public ResponseEntity<java.util.List<Map<String, Object>>> getMonthlyTrend(
             @RequestParam(required = false) ProjectType projectType,
             @RequestParam(required = false) Integer year) {
-        int targetYear = year != null ? year : java.time.LocalDate.now().getYear();
+        int targetYear;
+        if (year != null) {
+            targetYear = year;
+        } else {
+            var allExecs = executionRepository.findAll(projectType, null, null, null);
+            targetYear = allExecs.stream()
+                    .map(e -> e.getAssignmentDate() != null ? e.getAssignmentDate().getYear() : (e.getCreatedAt() != null ? e.getCreatedAt().getYear() : java.time.LocalDate.now().getYear()))
+                    .max(Integer::compareTo)
+                    .orElse(java.time.LocalDate.now().getYear());
+        }
+
         java.util.List<Map<String, Object>> trend = new java.util.ArrayList<>();
         String[] monthNames = {"Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"};
 
@@ -132,16 +142,23 @@ public class MetricsController {
         // Suma total de ejecuciones realizadas (Run 1 + Retests)
         long totalExecutions = executions.stream()
                 .mapToLong(e -> {
-                    long runSum = e.getRuns().stream().mapToLong(r -> r.getCasesExecuted() > 0 ? r.getCasesExecuted() : 1).sum();
-                    return Math.max(runSum, Math.max(e.getTotalCases(), e.getRuns().size()));
+                    if (e.getRuns() != null && !e.getRuns().isEmpty()) {
+                        long runSum = e.getRuns().stream().mapToLong(r -> r.getCasesExecuted() > 0 ? r.getCasesExecuted() : 1).sum();
+                        return Math.max(runSum, Math.max(e.getTotalCases(), e.getRuns().size()));
+                    }
+                    return Math.max(e.getTotalCases(), 1);
                 })
                 .sum();
 
         long successfulCases = executions.stream()
                 .mapToLong(e -> {
                     if (e.getSuccessfulCases() > 0) return e.getSuccessfulCases();
-                    long runSuccesses = e.getRuns().stream().filter(r -> RunStatus.SUCCESSFUL.equals(r.getStatus())).count();
-                    return runSuccesses;
+                    if (e.getRuns() != null && !e.getRuns().isEmpty()) {
+                        long casesPassedSum = e.getRuns().stream().mapToLong(r -> r.getCasesPassed()).sum();
+                        if (casesPassedSum > 0) return casesPassedSum;
+                        return e.getRuns().stream().filter(r -> RunStatus.SUCCESSFUL.equals(r.getStatus())).count();
+                    }
+                    return 0;
                 })
                 .sum();
 
