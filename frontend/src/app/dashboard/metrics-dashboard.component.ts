@@ -137,6 +137,9 @@ export class MetricsDashboardComponent implements OnInit, AfterViewInit, OnDestr
     if (this.selectedYear()) {
       trendParams = trendParams.set('year', this.selectedYear().toString());
     }
+    if (this.selectedMonth()) {
+      trendParams = trendParams.set('month', this.selectedMonth().toString());
+    }
 
     this.http.get<MonthlyTrendData[]>(`${environment.apiUrl}/metrics/trend`, { params: trendParams })
       .subscribe({
@@ -195,10 +198,12 @@ export class MetricsDashboardComponent implements OnInit, AfterViewInit, OnDestr
         formatter: (params: any) => {
           let res = `<div class="font-bold text-sm mb-1 text-slate-100">${params[0].axisValue}</div>`;
           params.forEach((item: any) => {
-            res += `<div class="flex items-center justify-between gap-4 text-xs py-0.5">
-                      <span style="color:${item.color}">● ${item.seriesName}:</span>
-                      <span class="font-mono font-bold text-white">${item.value}%</span>
-                    </div>`;
+            if (item.value != null && item.value !== undefined) {
+              res += `<div class="flex items-center justify-between gap-4 text-xs py-0.5">
+                        <span style="color:${item.color}">● ${item.seriesName}:</span>
+                        <span class="font-mono font-bold text-white">${item.value}%</span>
+                      </div>`;
+            }
           });
           return res;
         }
@@ -226,16 +231,19 @@ export class MetricsDashboardComponent implements OnInit, AfterViewInit, OnDestr
         {
           name: '🏭 Fábrica',
           type: 'bar',
+          barMaxWidth: 45,
+          barGap: '20%',
           data: data.map(d => d.fabricaQuality),
           itemStyle: { color: '#6366f1', borderRadius: [4, 4, 0, 0] },
-          label: { show: true, position: 'top', formatter: (params: any) => params.value != null ? `Fábrica: ${params.value}%` : '', color: '#6366f1', fontWeight: 'bold', fontSize: 10, textBorderColor: '#ffffff', textBorderWidth: 2 }
+          label: { show: true, position: 'top', formatter: (params: any) => (params.value != null && params.value !== undefined) ? `Fábrica: ${params.value}%` : '', color: '#6366f1', fontWeight: 'bold', fontSize: 10, textBorderColor: '#ffffff', textBorderWidth: 2 }
         },
         {
           name: '🔧 Minor Demand',
           type: 'bar',
+          barMaxWidth: 45,
           data: data.map(d => d.minorDemandQuality),
           itemStyle: { color: '#0891b2', borderRadius: [4, 4, 0, 0] },
-          label: { show: true, position: 'top', formatter: (params: any) => params.value != null ? `Minor Demand: ${params.value}%` : '', color: '#0891b2', fontWeight: 'bold', fontSize: 10, textBorderColor: '#ffffff', textBorderWidth: 2 }
+          label: { show: true, position: 'top', formatter: (params: any) => (params.value != null && params.value !== undefined) ? `Minor Demand: ${params.value}%` : '', color: '#0891b2', fontWeight: 'bold', fontSize: 10, textBorderColor: '#ffffff', textBorderWidth: 2 }
         },
         {
           name: '🌐 Consolidado',

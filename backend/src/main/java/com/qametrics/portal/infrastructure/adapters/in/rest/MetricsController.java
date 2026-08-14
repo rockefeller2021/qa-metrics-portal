@@ -95,7 +95,8 @@ public class MetricsController {
     @Operation(summary = "Tendencia mensual de calidad por tipo de proyecto para gráficos de barra ECharts")
     public ResponseEntity<java.util.List<Map<String, Object>>> getMonthlyTrend(
             @RequestParam(required = false) ProjectType projectType,
-            @RequestParam(required = false) Integer year) {
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month) {
         int targetYear;
         if (year != null) {
             targetYear = year;
@@ -110,22 +111,34 @@ public class MetricsController {
         java.util.List<Map<String, Object>> trend = new java.util.ArrayList<>();
         String[] monthNames = {"Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"};
 
-        for (int m = 1; m <= 12; m++) {
+        int startMonth = (month != null && month >= 1 && month <= 12) ? month : 1;
+        int endMonth   = (month != null && month >= 1 && month <= 12) ? month : 12;
+
+        for (int m = startMonth; m <= endMonth; m++) {
             Map<String, Object> fabrica = buildMetrics(ProjectType.FABRICA, targetYear, m);
-            Map<String, Object> minor = buildMetrics(ProjectType.MINOR_DEMAND, targetYear, m);
-            Map<String, Object> cons = buildMetrics(null, targetYear, m);
+            Map<String, Object> minor   = buildMetrics(ProjectType.MINOR_DEMAND, targetYear, m);
+            Map<String, Object> cons    = buildMetrics(projectType, targetYear, m);
 
-            long totalExecs = ((Number) cons.get("totalCases")).longValue();
-            long totalBugs = ((Number) cons.get("bugsFound")).longValue();
+            long fabricaExecs = ((Number) fabrica.get("totalCases")).longValue();
+            long fabricaBugs  = ((Number) fabrica.get("bugsFound")).longValue();
 
-            if (totalExecs > 0 || totalBugs > 0) {
+            long minorExecs   = ((Number) minor.get("totalCases")).longValue();
+            long minorBugs    = ((Number) minor.get("bugsFound")).longValue();
+
+            long consExecs    = ((Number) cons.get("totalCases")).longValue();
+            long consBugs     = ((Number) cons.get("bugsFound")).longValue();
+
+            if (consExecs > 0 || consBugs > 0) {
                 Map<String, Object> monthData = new HashMap<>();
                 monthData.put("monthName", monthNames[m - 1] + " " + targetYear);
                 monthData.put("year", targetYear);
                 monthData.put("month", m);
-                monthData.put("fabricaQuality", fabrica.get("qualityPercentage"));
-                monthData.put("minorDemandQuality", minor.get("qualityPercentage"));
+
+                // Si un tipo de proyecto no tiene registros en ese mes, se envía null para no graficar barra en 0
+                monthData.put("fabricaQuality", (fabricaExecs > 0 || fabricaBugs > 0) ? fabrica.get("qualityPercentage") : null);
+                monthData.put("minorDemandQuality", (minorExecs > 0 || minorBugs > 0) ? minor.get("qualityPercentage") : null);
                 monthData.put("consolidatedQuality", cons.get("qualityPercentage"));
+
                 monthData.put("successfulCases", cons.get("successfulCases"));
                 monthData.put("bugsFound", cons.get("bugsFound"));
                 monthData.put("targetQuality", 95.0);

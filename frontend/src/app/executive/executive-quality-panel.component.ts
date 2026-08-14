@@ -116,6 +116,9 @@ export class ExecutiveQualityPanelComponent implements OnInit, AfterViewInit, On
     if (this.selectedYear()) {
       trendParams = trendParams.set('year', this.selectedYear().toString());
     }
+    if (this.selectedMonth()) {
+      trendParams = trendParams.set('month', this.selectedMonth().toString());
+    }
 
     this.http.get<MonthlyTrendData[]>(`${environment.apiUrl}/metrics/trend`, { params: trendParams }).subscribe({
       next: (data) => {
@@ -174,11 +177,13 @@ export class ExecutiveQualityPanelComponent implements OnInit, AfterViewInit, On
         formatter: (params: any) => {
           let res = `<div class="font-bold text-sm mb-1 text-slate-100">${params[0].axisValue}</div>`;
           params.forEach((item: any) => {
-            const val = item.seriesType === 'line' ? `${item.value}%` : item.value;
-            res += `<div class="flex items-center justify-between gap-4 text-xs py-0.5">
-                      <span style="color:${item.color}">● ${item.seriesName}:</span>
-                      <span class="font-mono font-bold text-white">${val}</span>
-                    </div>`;
+            if (item.value != null && item.value !== undefined) {
+              const val = item.seriesType === 'line' ? `${item.value}%` : `${item.value}%`;
+              res += `<div class="flex items-center justify-between gap-4 text-xs py-0.5">
+                        <span style="color:${item.color}">● ${item.seriesName}:</span>
+                        <span class="font-mono font-bold text-white">${val}</span>
+                      </div>`;
+            }
           });
           return res;
         }
@@ -206,15 +211,16 @@ export class ExecutiveQualityPanelComponent implements OnInit, AfterViewInit, On
         {
           name: '% Calidad Consolidada',
           type: 'bar',
+          barMaxWidth: 50,
           data: data.map(d => d.consolidatedQuality),
           itemStyle: {
-            color: (params: any) => params.value >= 95 ? '#10b981' : '#f43f5e',
+            color: (params: any) => (params.value != null && params.value >= 95) ? '#10b981' : (params.value != null ? '#f43f5e' : 'transparent'),
             borderRadius: [6, 6, 0, 0]
           },
           label: {
             show: true,
             position: 'top',
-            formatter: '{c}%',
+            formatter: (params: any) => (params.value != null && params.value !== undefined) ? `${params.value}%` : '',
             color: '#10b981',
             fontWeight: 'bold',
             fontSize: 11,

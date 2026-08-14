@@ -494,6 +494,7 @@ export class ClientTrackingComponent implements OnInit, AfterViewInit, OnDestroy
         {
           name: '% Calidad Consolidada',
           type: 'bar',
+          barMaxWidth: 45,
           data: qualityData,
           itemStyle: {
             color: (params: any) => (params.value != null && params.value >= 95) ? '#10b981' : (params.value != null ? '#f43f5e' : 'transparent'),
