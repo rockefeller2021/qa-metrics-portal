@@ -115,17 +115,22 @@ public class MetricsController {
             Map<String, Object> minor = buildMetrics(ProjectType.MINOR_DEMAND, targetYear, m);
             Map<String, Object> cons = buildMetrics(null, targetYear, m);
 
-            Map<String, Object> monthData = new HashMap<>();
-            monthData.put("monthName", monthNames[m - 1] + " " + targetYear);
-            monthData.put("year", targetYear);
-            monthData.put("month", m);
-            monthData.put("fabricaQuality", fabrica.get("qualityPercentage"));
-            monthData.put("minorDemandQuality", minor.get("qualityPercentage"));
-            monthData.put("consolidatedQuality", cons.get("qualityPercentage"));
-            monthData.put("successfulCases", cons.get("successfulCases"));
-            monthData.put("bugsFound", cons.get("bugsFound"));
-            monthData.put("targetQuality", 95.0);
-            trend.add(monthData);
+            long totalExecs = ((Number) cons.get("totalCases")).longValue();
+            long totalBugs = ((Number) cons.get("bugsFound")).longValue();
+
+            if (totalExecs > 0 || totalBugs > 0) {
+                Map<String, Object> monthData = new HashMap<>();
+                monthData.put("monthName", monthNames[m - 1] + " " + targetYear);
+                monthData.put("year", targetYear);
+                monthData.put("month", m);
+                monthData.put("fabricaQuality", fabrica.get("qualityPercentage"));
+                monthData.put("minorDemandQuality", minor.get("qualityPercentage"));
+                monthData.put("consolidatedQuality", cons.get("qualityPercentage"));
+                monthData.put("successfulCases", cons.get("successfulCases"));
+                monthData.put("bugsFound", cons.get("bugsFound"));
+                monthData.put("targetQuality", 95.0);
+                trend.add(monthData);
+            }
         }
         return ResponseEntity.ok(trend);
     }
