@@ -36,11 +36,17 @@ public class ExecutiveMetricsUseCaseImpl implements ExecutiveMetricsUseCase {
 
     @Override
     public Map<String, Object> getExecutiveMetrics(String projectTypeStr, Integer year, Integer month) {
-        ProjectType pType = parseProjectType(projectTypeStr);
+        return getExecutiveMetrics(projectTypeStr, year, month, null);
+    }
 
-        List<TestExecution> executions = executionRepository.findAll(pType, null, year, month);
-        List<Bug> bugs                   = bugRepository.findAll(pType, null, year, month);
-        List<DeliverySla> deliveries     = deliverySlaRepository.findAll(pType, null, null, year, month);
+    @Override
+    public Map<String, Object> getExecutiveMetrics(String projectTypeStr, Integer year, Integer month, String requestTypeStr) {
+        ProjectType pType = parseProjectType(projectTypeStr);
+        RequestType rType = parseRequestType(requestTypeStr);
+
+        List<TestExecution> executions = executionRepository.findAll(pType, rType, null, year, month);
+        List<Bug> bugs                   = bugRepository.findAll(pType, rType, null, year, month);
+        List<DeliverySla> deliveries     = deliverySlaRepository.findAll(pType, rType, null, null, year, month);
 
         // 1. Conteo Unificado de Casos e Iteraciones (Run 1 + Retests N)
         long totalDesigned = executions.stream().mapToLong(TestExecution::getTotalCases).sum();
@@ -125,6 +131,15 @@ public class ExecutiveMetricsUseCaseImpl implements ExecutiveMetricsUseCase {
         if (type == null || type.isBlank()) return null;
         try {
             return ProjectType.valueOf(type.toUpperCase());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private RequestType parseRequestType(String type) {
+        if (type == null || type.isBlank()) return null;
+        try {
+            return RequestType.valueOf(type.toUpperCase());
         } catch (Exception e) {
             return null;
         }

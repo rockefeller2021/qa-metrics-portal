@@ -2,6 +2,7 @@ package com.qametrics.portal.domain.port.outbound;
 
 import com.qametrics.portal.domain.model.DeliverySla;
 import com.qametrics.portal.domain.model.ProjectType;
+import com.qametrics.portal.domain.model.RequestType;
 import com.qametrics.portal.domain.model.SlaStatus;
 
 import java.util.List;
@@ -13,6 +14,8 @@ import java.util.Optional;
 public interface DeliverySlaRepository {
 
     List<DeliverySla> findAll(ProjectType projectType, SlaStatus status, String sprintOrPi, Integer year, Integer month);
+
+    List<DeliverySla> findAll(ProjectType projectType, RequestType requestType, SlaStatus status, String sprintOrPi, Integer year, Integer month);
 
     Optional<DeliverySla> findById(Long id);
 

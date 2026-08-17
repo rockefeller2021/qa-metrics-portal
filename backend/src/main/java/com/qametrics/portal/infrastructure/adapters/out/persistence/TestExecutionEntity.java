@@ -20,6 +20,9 @@ public class TestExecutionEntity {
     @Column(name = "project_type", nullable = false, length = 20)
     private String projectType;
 
+    @Column(name = "request_type", nullable = false, length = 30)
+    private String requestType = "EVOLUTIVO";
+
     @Column(name = "assignment_date", nullable = false)
     private LocalDate assignmentDate;
 
@@ -119,6 +122,8 @@ public class TestExecutionEntity {
     public void setJiraId(String jiraId)   { this.jiraId = jiraId; }
     public String getProjectType()                 { return projectType; }
     public void setProjectType(String projectType) { this.projectType = projectType; }
+    public String getRequestType()                 { return requestType; }
+    public void setRequestType(String requestType) { this.requestType = requestType; }
     public LocalDate getAssignmentDate()                   { return assignmentDate; }
     public void setAssignmentDate(LocalDate assignmentDate){ this.assignmentDate = assignmentDate; }
     public LocalDate getDesignDate()              { return designDate; }

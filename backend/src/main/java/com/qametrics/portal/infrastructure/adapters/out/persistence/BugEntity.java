@@ -21,6 +21,9 @@ public class BugEntity {
     @Column(name = "project_type", nullable = false, length = 20)
     private String projectType;
 
+    @Column(name = "request_type", nullable = false, length = 30)
+    private String requestType = "EVOLUTIVO";
+
     @Column(name = "sprint_or_pi", nullable = false, length = 50)
     private String sprintOrPi;
 
@@ -110,6 +113,8 @@ public class BugEntity {
     public void setRequirementId(String requirementId){ this.requirementId = requirementId; }
     public String getProjectType()                 { return projectType; }
     public void setProjectType(String projectType) { this.projectType = projectType; }
+    public String getRequestType()                 { return requestType; }
+    public void setRequestType(String requestType) { this.requestType = requestType; }
     public String getSprintOrPi()              { return sprintOrPi; }
     public void setSprintOrPi(String sprintOrPi){ this.sprintOrPi = sprintOrPi; }
     public String getStatus()          { return status; }

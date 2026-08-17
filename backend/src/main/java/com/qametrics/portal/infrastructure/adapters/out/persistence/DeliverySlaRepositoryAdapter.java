@@ -20,9 +20,15 @@ public class DeliverySlaRepositoryAdapter implements DeliverySlaRepository {
 
     @Override
     public List<DeliverySla> findAll(ProjectType projectType, SlaStatus status, String sprintOrPi, Integer year, Integer month) {
+        return findAll(projectType, null, status, sprintOrPi, year, month);
+    }
+
+    @Override
+    public List<DeliverySla> findAll(ProjectType projectType, com.qametrics.portal.domain.model.RequestType requestType, SlaStatus status, String sprintOrPi, Integer year, Integer month) {
         String typeStr   = (projectType != null) ? projectType.name() : null;
+        String reqStr    = (requestType != null) ? requestType.name() : null;
         String statusStr = (status != null) ? status.name() : null;
-        return repository.findAllFiltered(typeStr, statusStr, sprintOrPi, year, month).stream()
+        return repository.findAllFiltered(typeStr, reqStr, statusStr, sprintOrPi, year, month).stream()
                 .map(this::toDomain)
                 .toList();
     }
@@ -60,6 +66,9 @@ public class DeliverySlaRepositoryAdapter implements DeliverySlaRepository {
         model.setId(entity.getId());
         model.setJiraId(entity.getJiraId());
         model.setProjectType(ProjectType.valueOf(entity.getProjectType()));
+        if (entity.getRequestType() != null) {
+            try { model.setRequestType(com.qametrics.portal.domain.model.RequestType.valueOf(entity.getRequestType())); } catch (Exception ex) { model.setRequestType(com.qametrics.portal.domain.model.RequestType.EVOLUTIVO); }
+        }
         model.setSprintOrPi(entity.getSprintOrPi());
         model.setDesignerAnalyst(entity.getDesignerAnalyst());
         model.setEstimatedDeliveryDate(entity.getEstimatedDeliveryDate());
@@ -81,6 +90,7 @@ public class DeliverySlaRepositoryAdapter implements DeliverySlaRepository {
         entity.setId(domain.getId());
         entity.setJiraId(domain.getJiraId());
         entity.setProjectType(domain.getProjectType().name());
+        if (domain.getRequestType() != null) entity.setRequestType(domain.getRequestType().name());
         entity.setSprintOrPi(domain.getSprintOrPi());
         entity.setDesignerAnalyst(domain.getDesignerAnalyst());
         entity.setEstimatedDeliveryDate(domain.getEstimatedDeliveryDate());

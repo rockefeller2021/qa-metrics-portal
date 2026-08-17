@@ -9,9 +9,10 @@ public interface SpringDataDeliverySlaRepository extends JpaRepository<DeliveryS
 
     @Query("SELECT d FROM DeliverySlaEntity d WHERE " +
            "(:projectType IS NULL OR d.projectType = :projectType) AND " +
+           "(:requestType IS NULL OR d.requestType = :requestType) AND " +
            "(:status IS NULL OR d.status = :status) AND " +
            "(:sprintOrPi IS NULL OR LOWER(d.sprintOrPi) LIKE LOWER(CONCAT('%', :sprintOrPi, '%'))) AND " +
            "(:year IS NULL OR YEAR(d.estimatedDeliveryDate) = :year) AND " +
            "(:month IS NULL OR MONTH(d.estimatedDeliveryDate) = :month)")
-    List<DeliverySlaEntity> findAllFiltered(String projectType, String status, String sprintOrPi, Integer year, Integer month);
+    List<DeliverySlaEntity> findAllFiltered(String projectType, String requestType, String status, String sprintOrPi, Integer year, Integer month);
 }

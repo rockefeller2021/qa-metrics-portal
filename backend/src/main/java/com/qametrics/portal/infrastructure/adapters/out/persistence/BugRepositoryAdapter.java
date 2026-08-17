@@ -19,8 +19,14 @@ public class BugRepositoryAdapter implements BugRepository {
 
     @Override
     public List<Bug> findAll(ProjectType projectType, String sprintOrPi, Integer year, Integer month) {
+        return findAll(projectType, null, sprintOrPi, year, month);
+    }
+
+    @Override
+    public List<Bug> findAll(ProjectType projectType, RequestType requestType, String sprintOrPi, Integer year, Integer month) {
         String pt = (projectType != null) ? projectType.name() : null;
-        return jpaRepository.findByFilters(pt, sprintOrPi, year, month)
+        String rt = (requestType != null) ? requestType.name() : null;
+        return jpaRepository.findByFilters(pt, rt, sprintOrPi, year, month)
                 .stream().map(this::toDomain).collect(Collectors.toList());
     }
 
@@ -68,6 +74,9 @@ public class BugRepositoryAdapter implements BugRepository {
         b.setBugJiraId(e.getBugJiraId());
         b.setRequirementId(e.getRequirementId());
         b.setProjectType(ProjectType.valueOf(e.getProjectType()));
+        if (e.getRequestType() != null) {
+            try { b.setRequestType(RequestType.valueOf(e.getRequestType())); } catch (Exception ex) { b.setRequestType(RequestType.EVOLUTIVO); }
+        }
         b.setSprintOrPi(e.getSprintOrPi());
         b.setStatus(BugStatus.valueOf(e.getStatus()));
         b.setDefectType(DefectType.valueOf(e.getDefectType()));
@@ -90,6 +99,7 @@ public class BugRepositoryAdapter implements BugRepository {
         e.setBugJiraId(b.getBugJiraId());
         e.setRequirementId(b.getRequirementId());
         e.setProjectType(b.getProjectType().name());
+        if (b.getRequestType() != null) e.setRequestType(b.getRequestType().name());
         e.setSprintOrPi(b.getSprintOrPi());
         e.setStatus(b.getStatus().name());
         e.setDefectType(b.getDefectType().name());

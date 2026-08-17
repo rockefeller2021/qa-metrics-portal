@@ -14,6 +14,7 @@ public class TestExecution {
     private Long id;
     private String jiraId;
     private ProjectType projectType;
+    private RequestType requestType = RequestType.EVOLUTIVO;
     private LocalDate assignmentDate;
     private LocalDate designDate;
     private String designerAnalyst;
@@ -92,6 +93,8 @@ public class TestExecution {
     public void setJiraId(String jiraId)   { this.jiraId = jiraId; }
     public ProjectType getProjectType()                 { return projectType; }
     public void setProjectType(ProjectType projectType) { this.projectType = projectType; }
+    public RequestType getRequestType()                 { return requestType; }
+    public void setRequestType(RequestType requestType) { this.requestType = requestType; }
     public LocalDate getAssignmentDate()                   { return assignmentDate; }
     public void setAssignmentDate(LocalDate assignmentDate){ this.assignmentDate = assignmentDate; }
     public LocalDate getDesignDate()              { return designDate; }

@@ -60,6 +60,7 @@ export class ExecutiveQualityPanelComponent implements OnInit, AfterViewInit, On
   private trendChartInstance: echarts.ECharts | null = null;
 
   selectedProjectType = signal<string>('');
+  selectedRequestType = signal<string>('');
   selectedYear        = signal<number | ''>('');
   selectedMonth       = signal<number | ''>('');
 
@@ -93,6 +94,9 @@ export class ExecutiveQualityPanelComponent implements OnInit, AfterViewInit, On
     if (this.selectedProjectType()) {
       params = params.set('projectType', this.selectedProjectType());
     }
+    if (this.selectedRequestType()) {
+      params = params.set('requestType', this.selectedRequestType());
+    }
     if (this.selectedYear()) {
       params = params.set('year', this.selectedYear().toString());
     }
@@ -113,6 +117,9 @@ export class ExecutiveQualityPanelComponent implements OnInit, AfterViewInit, On
     if (this.selectedProjectType()) {
       trendParams = trendParams.set('projectType', this.selectedProjectType());
     }
+    if (this.selectedRequestType()) {
+      trendParams = trendParams.set('requestType', this.selectedRequestType());
+    }
     if (this.selectedYear()) {
       trendParams = trendParams.set('year', this.selectedYear().toString());
     }
@@ -131,6 +138,11 @@ export class ExecutiveQualityPanelComponent implements OnInit, AfterViewInit, On
 
   filterByType(type: string): void {
     this.selectedProjectType.set(type);
+    this.loadMetrics();
+  }
+
+  onRequestTypeChange(type: string): void {
+    this.selectedRequestType.set(type);
     this.loadMetrics();
   }
 

@@ -13,6 +13,7 @@ public class Bug {
     private String bugJiraId;
     private String requirementId;
     private ProjectType projectType;
+    private RequestType requestType = RequestType.EVOLUTIVO;
     private String sprintOrPi;
     private BugStatus status;
     private DefectType defectType;
@@ -54,6 +55,9 @@ public class Bug {
 
     public ProjectType getProjectType()               { return projectType; }
     public void setProjectType(ProjectType projectType){ this.projectType = projectType; }
+
+    public RequestType getRequestType()               { return requestType; }
+    public void setRequestType(RequestType requestType){ this.requestType = requestType; }
 
     public String getSprintOrPi()              { return sprintOrPi; }
     public void setSprintOrPi(String sprintOrPi){ this.sprintOrPi = sprintOrPi; }

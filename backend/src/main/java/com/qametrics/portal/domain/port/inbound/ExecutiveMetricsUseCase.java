@@ -8,4 +8,6 @@ import java.util.Map;
 public interface ExecutiveMetricsUseCase {
 
     Map<String, Object> getExecutiveMetrics(String projectType, Integer year, Integer month);
+
+    Map<String, Object> getExecutiveMetrics(String projectType, Integer year, Integer month, String requestType);
 }

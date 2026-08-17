@@ -20,7 +20,7 @@ CREATE TABLE delivery_slas (
         CHECK (project_type IN ('FABRICA', 'MINOR_DEMAND')),
     CONSTRAINT chk_delivery_status
         CHECK (status IN ('PENDING', 'ON_TIME', 'DELAYED'))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+);
 
 CREATE INDEX idx_delivery_project_type ON delivery_slas(project_type);
 CREATE INDEX idx_delivery_sprint_or_pi ON delivery_slas(sprint_or_pi);

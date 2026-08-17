@@ -57,8 +57,9 @@ export class MetricsDashboardComponent implements OnInit, AfterViewInit, OnDestr
   private trendChartInstance: echarts.ECharts | null = null;
 
   // ── Signals ───────────────────────────────────────────────
-  selectedYear  = signal<number | ''>('');
-  selectedMonth = signal<number | ''>('');
+  selectedYear        = signal<number | ''>('');
+  selectedMonth       = signal<number | ''>('');
+  selectedRequestType = signal<string>('');
 
   dashboardData = signal<DashboardData | null>(null);
   trendData     = signal<MonthlyTrendData[]>([]);
@@ -109,6 +110,11 @@ export class MetricsDashboardComponent implements OnInit, AfterViewInit, OnDestr
     this.loadDashboard();
   }
 
+  onTypeChange(type: string): void {
+    this.selectedRequestType.set(type);
+    this.loadDashboard();
+  }
+
   loadDashboard(): void {
     this.isLoading.set(true);
     let params = new HttpParams();
@@ -117,6 +123,9 @@ export class MetricsDashboardComponent implements OnInit, AfterViewInit, OnDestr
     }
     if (this.selectedMonth()) {
       params = params.set('month', this.selectedMonth().toString());
+    }
+    if (this.selectedRequestType()) {
+      params = params.set('requestType', this.selectedRequestType());
     }
 
     this.http.get<DashboardData>(`${environment.apiUrl}/metrics/dashboard`, { params })
@@ -139,6 +148,9 @@ export class MetricsDashboardComponent implements OnInit, AfterViewInit, OnDestr
     }
     if (this.selectedMonth()) {
       trendParams = trendParams.set('month', this.selectedMonth().toString());
+    }
+    if (this.selectedRequestType()) {
+      trendParams = trendParams.set('requestType', this.selectedRequestType());
     }
 
     this.http.get<MonthlyTrendData[]>(`${environment.apiUrl}/metrics/trend`, { params: trendParams })

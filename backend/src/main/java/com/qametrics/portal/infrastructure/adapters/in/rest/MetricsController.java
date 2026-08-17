@@ -1,6 +1,7 @@
 package com.qametrics.portal.infrastructure.adapters.in.rest;
 
 import com.qametrics.portal.domain.model.ProjectType;
+import com.qametrics.portal.domain.model.RequestType;
 import com.qametrics.portal.domain.model.RunStatus;
 import com.qametrics.portal.domain.port.outbound.BugRepository;
 import com.qametrics.portal.domain.port.outbound.TestExecutionRepository;
@@ -37,16 +38,17 @@ public class MetricsController {
     }
 
     @GetMapping("/quality")
-    @Operation(summary = "% de Calidad por periodo y tipo de proyecto")
+    @Operation(summary = "% de Calidad por periodo y tipo de proyecto/requerimiento")
     public ResponseEntity<Map<String, Object>> getQuality(
             @RequestParam(required = false) ProjectType projectType,
+            @RequestParam(required = false) RequestType requestType,
             @RequestParam(required = false) String sprintOrPi,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month) {
 
         // Obtener datos de BD
-        var executions = executionRepository.findAll(projectType, sprintOrPi, year, month);
-        var bugs       = bugRepository.findAll(projectType, sprintOrPi, year, month);
+        var executions = executionRepository.findAll(projectType, requestType, sprintOrPi, year, month);
+        var bugs       = bugRepository.findAll(projectType, requestType, sprintOrPi, year, month);
 
         // Calcular métricas
         long totalAttempts  = executions.stream().mapToLong(e -> e.getRuns().size()).sum();
@@ -70,6 +72,7 @@ public class MetricsController {
         response.put("successfulCases", successfulCases);
         response.put("bugsFound", bugsFound);
         response.put("projectType", projectType != null ? projectType.name() : "ALL");
+        response.put("requestType", requestType != null ? requestType.name() : "ALL");
         response.put("sprintOrPi", sprintOrPi != null ? sprintOrPi : "ALL");
 
         return ResponseEntity.ok(response);
@@ -78,14 +81,15 @@ public class MetricsController {
     @GetMapping("/dashboard")
     @Operation(summary = "Resumen consolidado para el dashboard")
     public ResponseEntity<Map<String, Object>> getDashboard(
+            @RequestParam(required = false) RequestType requestType,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month) {
         Map<String, Object> dashboard = new HashMap<>();
 
         // Métricas consolidadas
-        dashboard.put("fabrica", buildMetrics(ProjectType.FABRICA, year, month));
-        dashboard.put("minorDemand", buildMetrics(ProjectType.MINOR_DEMAND, year, month));
-        dashboard.put("consolidated", buildMetrics(null, year, month));
+        dashboard.put("fabrica", buildMetrics(ProjectType.FABRICA, requestType, year, month));
+        dashboard.put("minorDemand", buildMetrics(ProjectType.MINOR_DEMAND, requestType, year, month));
+        dashboard.put("consolidated", buildMetrics(null, requestType, year, month));
         dashboard.put("qualityTarget", QualityMetricService.QUALITY_TARGET);
 
         return ResponseEntity.ok(dashboard);
@@ -95,13 +99,14 @@ public class MetricsController {
     @Operation(summary = "Tendencia mensual de calidad por tipo de proyecto para gráficos de barra ECharts")
     public ResponseEntity<java.util.List<Map<String, Object>>> getMonthlyTrend(
             @RequestParam(required = false) ProjectType projectType,
+            @RequestParam(required = false) RequestType requestType,
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month) {
         int targetYear;
         if (year != null) {
             targetYear = year;
         } else {
-            var allExecs = executionRepository.findAll(projectType, null, null, null);
+            var allExecs = executionRepository.findAll(projectType, requestType, null, null, null);
             targetYear = allExecs.stream()
                     .map(e -> e.getAssignmentDate() != null ? e.getAssignmentDate().getYear() : (e.getCreatedAt() != null ? e.getCreatedAt().getYear() : java.time.LocalDate.now().getYear()))
                     .max(Integer::compareTo)
@@ -115,9 +120,9 @@ public class MetricsController {
         int endMonth   = (month != null && month >= 1 && month <= 12) ? month : 12;
 
         for (int m = startMonth; m <= endMonth; m++) {
-            Map<String, Object> fabrica = buildMetrics(ProjectType.FABRICA, targetYear, m);
-            Map<String, Object> minor   = buildMetrics(ProjectType.MINOR_DEMAND, targetYear, m);
-            Map<String, Object> cons    = buildMetrics(projectType, targetYear, m);
+            Map<String, Object> fabrica = buildMetrics(ProjectType.FABRICA, requestType, targetYear, m);
+            Map<String, Object> minor   = buildMetrics(ProjectType.MINOR_DEMAND, requestType, targetYear, m);
+            Map<String, Object> cons    = buildMetrics(projectType, requestType, targetYear, m);
 
             long fabricaExecs = ((Number) fabrica.get("totalCases")).longValue();
             long fabricaBugs  = ((Number) fabrica.get("bugsFound")).longValue();
@@ -148,9 +153,9 @@ public class MetricsController {
         return ResponseEntity.ok(trend);
     }
 
-    private Map<String, Object> buildMetrics(ProjectType type, Integer year, Integer month) {
-        var executions = executionRepository.findAll(type, null, year, month);
-        var bugs       = bugRepository.findAll(type, null, year, month);
+    private Map<String, Object> buildMetrics(ProjectType type, RequestType requestType, Integer year, Integer month) {
+        var executions = executionRepository.findAll(type, requestType, null, year, month);
+        var bugs       = bugRepository.findAll(type, requestType, null, year, month);
 
         // Suma total de ejecuciones realizadas (Run 1 + Retests)
         long totalExecutions = executions.stream()

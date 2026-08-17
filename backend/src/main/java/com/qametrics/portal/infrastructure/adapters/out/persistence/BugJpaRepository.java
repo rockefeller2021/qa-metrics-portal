@@ -10,11 +10,13 @@ interface BugJpaRepository extends JpaRepository<BugEntity, Long> {
 
     @Query("SELECT b FROM BugEntity b WHERE " +
            "(:projectType IS NULL OR b.projectType = :projectType) AND " +
+           "(:requestType IS NULL OR b.requestType = :requestType) AND " +
            "(:sprintOrPi IS NULL OR b.sprintOrPi = :sprintOrPi) AND " +
            "(:year IS NULL OR YEAR(b.reportedDate) = :year) AND " +
            "(:month IS NULL OR MONTH(b.reportedDate) = :month)")
     List<BugEntity> findByFilters(
             @Param("projectType") String projectType,
+            @Param("requestType") String requestType,
             @Param("sprintOrPi") String sprintOrPi,
             @Param("year") Integer year,
             @Param("month") Integer month);

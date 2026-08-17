@@ -29,7 +29,8 @@ public class ExecutiveMetricsController {
     public ResponseEntity<Map<String, Object>> getExecutiveMetrics(
             @RequestParam(required = false) String projectType,
             @RequestParam(required = false) Integer year,
-            @RequestParam(required = false) Integer month) {
-        return ResponseEntity.ok(executiveMetricsUseCase.getExecutiveMetrics(projectType, year, month));
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) String requestType) {
+        return ResponseEntity.ok(executiveMetricsUseCase.getExecutiveMetrics(projectType, year, month, requestType));
     }
 }

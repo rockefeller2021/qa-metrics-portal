@@ -22,8 +22,14 @@ public class TestExecutionRepositoryAdapter implements TestExecutionRepository {
 
     @Override
     public List<TestExecution> findAll(ProjectType projectType, String sprintOrPi, Integer year, Integer month) {
+        return findAll(projectType, null, sprintOrPi, year, month);
+    }
+
+    @Override
+    public List<TestExecution> findAll(ProjectType projectType, RequestType requestType, String sprintOrPi, Integer year, Integer month) {
         String pt = (projectType != null) ? projectType.name() : null;
-        return execRepo.findByFilters(pt, sprintOrPi, year, month)
+        String rt = (requestType != null) ? requestType.name() : null;
+        return execRepo.findByFilters(pt, rt, sprintOrPi, year, month)
                 .stream().map(this::toDomain).collect(Collectors.toList());
     }
 
@@ -77,6 +83,9 @@ public class TestExecutionRepositoryAdapter implements TestExecutionRepository {
         t.setId(e.getId());
         t.setJiraId(e.getJiraId());
         t.setProjectType(ProjectType.valueOf(e.getProjectType()));
+        if (e.getRequestType() != null) {
+            try { t.setRequestType(RequestType.valueOf(e.getRequestType())); } catch (Exception ex) { t.setRequestType(RequestType.EVOLUTIVO); }
+        }
         t.setAssignmentDate(e.getAssignmentDate());
         t.setDesignDate(e.getDesignDate());
         t.setDesignerAnalyst(e.getDesignerAnalyst());
@@ -104,6 +113,7 @@ public class TestExecutionRepositoryAdapter implements TestExecutionRepository {
         if (t.getId() != null) e.setId(t.getId());
         e.setJiraId(t.getJiraId());
         e.setProjectType(t.getProjectType().name());
+        if (t.getRequestType() != null) e.setRequestType(t.getRequestType().name());
         e.setAssignmentDate(t.getAssignmentDate());
         e.setDesignDate(t.getDesignDate());
         e.setDesignerAnalyst(t.getDesignerAnalyst());

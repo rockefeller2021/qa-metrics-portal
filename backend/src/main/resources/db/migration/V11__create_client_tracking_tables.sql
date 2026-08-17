@@ -3,8 +3,8 @@
 CREATE TABLE client_delivery_metrics (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     project_type VARCHAR(20) NOT NULL,
-    year INT NOT NULL,
-    month INT NOT NULL,
+    `year` INT NOT NULL,
+    `month` INT NOT NULL,
     sprint_or_period VARCHAR(50),
     delivery_date DATE NOT NULL,
     evolutivos_count INT NOT NULL DEFAULT 0,
